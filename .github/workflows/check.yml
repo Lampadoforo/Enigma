@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - working-directory: $GITHUB_WORKSPACE
