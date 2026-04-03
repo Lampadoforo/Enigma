@@ -1,0 +1,10 @@
+name: check
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-lates
+    steps:
+      - uses: actions/checkout@v6
+      - working-directory: $GITHUB_WORKSPACE
+        run: ./check.sh
