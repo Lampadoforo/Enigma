@@ -5,5 +5,4 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
       - run: ./check.sh

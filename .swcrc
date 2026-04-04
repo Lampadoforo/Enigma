@@ -1,0 +1,7 @@
+{
+	"env": {
+		"loose": true,
+		"target": "es11",
+	},
+	"minify": true,
+}

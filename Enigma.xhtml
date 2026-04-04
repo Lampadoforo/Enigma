@@ -1,0 +1,1386 @@
+<!doctype html>
+<html class="wait" lang="it" xml:lang="it" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width,initial-scale=1"/>
+		<title>Enigma</title>
+		<style>
+			/*<![CDATA[*/
+			::backdrop {
+				backdrop-filter: blur(1px);
+			}
+			a {
+				color: var(--color);
+			}
+			button {
+				background-color: var(--background-color);
+				border: var(--border-width) solid var(--color);
+				display: inline-flex;
+				gap: var(--small-space);
+				padding: var(--small-space);
+			}
+			button:enabled,label,details,summary,.clickable {
+				cursor: pointer;
+			}
+			details {
+				border-color: var(--color);
+				border-right-style: solid;
+				border-top-style: solid;
+				border-width: var(--border-width);
+				flex: 1;
+			}
+			details:first-child {
+				border-left-style: solid;
+			}
+			details:not([open]) {
+				border-bottom-style: solid;
+			}
+			dl,ol {
+				text-align: left;
+			}
+			fieldset {
+				border: var(--border-width) solid;
+				flex: 1;
+			}
+			form {
+				row-gap: var(--medium-space);
+			}
+			html {
+				--big-space: 1.5ch;
+				--border-width: thin;
+				--duration: 1s;
+				--medium-space: 1ch;
+				--small-space: 0.5ch;
+				background-color: var(--background-color);
+				color: var(--color);
+				color-scheme: dark light;
+				min-height: 100%;
+				text-align: center;
+			}
+			input,.code,.enigma {
+				font-family: monospace;
+			}
+			input:invalid {
+				border-color: red;
+			}
+			label {
+				padding-right: var(--small-space);
+				text-align: right;
+			}
+			label,summary,.verifiers,#solutionTBody {
+				user-select: none;
+			}
+			li {
+				text-wrap-mode: nowrap;
+			}
+			li.deleted::after {
+				background-color: red;
+				content: "";
+				height: 10%;
+				left: 0;
+				position: absolute;
+				top: 45%;
+				width: 100%;
+			}
+			nav {
+				display: flex;
+				margin: 0;
+				padding: 0;
+			}
+			ol {
+				color: var(--color);
+			}
+			p {
+				text-align: justify;
+			}
+			summary {
+				padding-bottom: var(--small-space);
+				padding-top: var(--small-space);
+			}
+			svg {
+				height: 1lh;
+				width: 1lh;
+			}
+			table {
+				margin-left: auto;
+				margin-right: auto;
+			}
+			td,th {
+				border: var(--border-width) solid;
+			}
+			td.deleted::after {
+				background-image:
+					linear-gradient(to bottom right, transparent 47%, red 47% 53%, transparent 53%),
+					linear-gradient(to top right, transparent 47%, red 47% 53%, transparent 53%);
+				content: "";
+				height: 100%;
+				left: 0;
+				position: absolute;
+				top: 0;
+				width: 100%;
+			}
+			th {
+				padding: var(--small-space);
+			}
+			.copied {
+				animation: var(--duration) fade;
+				background-color: var(--background-color);
+				color: var(--color);
+				left: 50%;
+				position: absolute;
+				top: 50%;
+				z-index: 1;
+			}
+			.correct {
+				background-color: green;
+			}
+			.criteria {
+				list-style-position: inside;
+				margin: 0;
+				padding: 0;
+			}
+			.criteria>li,#solutionTBody>tr>td {
+				border-style: solid;
+				border-width: var(--border-width);
+				position: relative;
+			}
+			:is(.criteria>li,#solutionTBody>tr>td):not(.guess) {
+				border-color: transparent;
+			}
+			.error,.red {
+				color: red;
+			}
+			.flashes {
+				animation: var(--duration) flash;
+			}
+			.flashesGreen {
+				animation: var(--duration) flashGreen;
+			}
+			.flashesRed {
+				animation: var(--duration) flashRed;
+			}
+			.flexRow {
+				align-items: center;
+				display: flex;
+				gap: var(--medium-space);
+				justify-content: center;
+			}
+			.green {
+				color: green;
+			}
+			.guess {
+				border-color: green;
+			}
+			.hidden {
+				display: none;
+			}
+			.progress {
+				cursor: progress;
+			}
+			.tab {
+				border-bottom-style: solid;
+				border-left-style: solid;
+				border-right-style: solid;
+				border-width: var(--border-width);
+				padding: var(--big-space);
+			}
+			.verifiers {
+				display: flex;
+				flex-wrap: wrap;
+				gap: var(--small-space);
+			}
+			.wait {
+				cursor: wait;
+			}
+			.x {
+				background-image:
+					linear-gradient(to bottom right, transparent 50%, aqua 50%),
+					linear-gradient(to top right, aqua 50%, transparent 50%);
+				background-position-x:
+					0%,
+					100%;
+				background-repeat:
+					no-repeat,
+					no-repeat;
+				background-size:
+					50%,
+					50%;
+			}
+			.y {
+				background-color: yellow;
+			}
+			.z {
+				background-color: fuchsia;
+				border-radius: 50%;
+			}
+			.x,.y,.z {
+				color: black;
+				display: inline-block;
+				text-align: center;
+				width: 1lh;
+			}
+			#cancelButton,#generateButton,#importButton,#questionButton {
+				grid-column: span 2;
+				justify-self: center;
+			}
+			#code::placeholder {
+				font-style: italic;
+				text-align: center;
+			}
+			#copy {
+				position: relative;
+			}
+			#generateForm,#importForm,#questionForm {
+				display: inline-grid;
+				grid-template-columns: auto auto;
+			}
+			#id {
+				text-transform: uppercase;
+			}
+			#play>* {
+				margin-bottom: var(--big-space);
+				margin-top: var(--big-space);
+			}
+			#questionsTable {
+				border: var(--border-width) solid;
+				border-collapse: collapse;
+			}
+			#solveForm {
+				align-items: center;
+				display: flex;
+				flex-direction: column;
+			}
+			@media(pointer: fine) {
+				:is(a,button:enabled,label,details,.clickable):hover {
+					background-color: var(--color);
+					color: var(--background-color);
+				}
+				details:hover {
+					border-bottom-style: solid;
+				}
+			}
+			@media(prefers-color-scheme: dark) {
+				html {
+					--background-color: black;
+					--color: white;
+				}
+			}
+			@media(prefers-color-scheme: light) {
+				html {
+					--background-color: white;
+					--color: black;
+				}
+			}
+			@keyframes fade {
+				to {
+					opacity: 0;
+				}
+			}
+			@keyframes flash {
+				from {
+					background-color: var(--color);
+				}
+			}
+			@keyframes flashGreen {
+				from {
+					background-color: green;
+				}
+			}
+			@keyframes flashRed {
+				from {
+					background-color: red;
+				}
+			}
+			/*]]>*/
+		</style>
+		<link type="image/svg+xml" href="favicon.svg" rel="icon"/>
+		<meta name="description" content="Enigma è un’implementazione web del gioco da tavolo di deduzione logica Turing Machine."/>
+	</head>
+	<body>
+		<nav id="headers" class="hidden">
+			<details>
+				<summary>Per iniziare</summary>
+			</details>
+			<details>
+				<summary>Genera</summary>
+			</details>
+			<details>
+				<summary>Importa</summary>
+			</details>
+		</nav>
+		<div class="hidden tab">
+			<p><dfn>Enigma</dfn> è un’implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info">Turing Machine</a>. Turing Machine è ideato da Fabien Gridel e Yoann Levet e pubblicato da <a href="https://www.scorpionmasque.com">Scorpion Masqué</a>.</p>
+			<p>Lo scopo del gioco è indovinare l’<strong>unico</strong> codice di tre cifre da 1 a 5, indicate con <var class="x">x</var>, <var class="y">y</var> e <var class="z">z</var>, <dfn>accettato</dfn> da tutti i <dfn>verificatori</dfn>.</p>
+			<p>Questo è un possibile enigma con quattro verificatori, indicati con le lettere da A a D.</p>
+			<div id="example" class="verifiers"></div>
+			<p>Ogni verificatore accetta o rifiuta i codici seguendo un <dfn>criterio</dfn>, predeterminato ma sconosciuto, fra una lista di criteri possibili. Per esempio, il verificatore A qui sopra ha tre criteri possibili: il primo accetta un codice se la cifra <var class="y">y</var> è minore di 4 e lo rifiuta altrimenti; il secondo lo accetta se <var class="y">y</var> è uguale a 4; il terzo se <var class="y">y</var> è maggiore di 4, cioè uguale a 5. In alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma <strong>il criterio usato dal verificatore è soltanto uno</strong>.</p>
+			<p><strong>Nessun verificatore è superfluo</strong>: ogni verificatore rifiuta almeno un codice accettato da tutti gli altri.</p>
+			<p>Per trovare la soluzione, è possibile <dfn>interrogare</dfn> un verificatore, sottoponendo ad esso un codice; il verificatore risponderà <span class="green">✔</span> se lo accetta oppure <span class="red">✘</span> se lo rifiuta. Si possono interrogare fino a tre verificatori per turno usando lo stesso codice. Per esempio, per stabilire quale criterio è quello usato dal verificatore A, potremmo interrogarlo con il codice <span class="code"><span class="x">1</span><span class="y">2</span><span class="z">3</span></span>: se risponde <span class="green">✔</span>, significa che il criterio usato è il primo; se risponde <span class="red">✘</span>, significa che è uno degli altri due.</p>
+			<p>Per tenere traccia dei criteri possibili, si può fare click su un criterio per segnarlo come non valido, oppure fare click destro o premere a lungo su un touchscreen per segnare <em>gli altri</em> come non validi. Lo stesso è possibile con le cifre della soluzione.</p>
+			<p>Dopo aver elimanato tutti i valori tranne uno per ogni cifra del codice, è possibile <dfn>verificarlo</dfn>. Se è corretto, si vince la partita; in caso contrario, la si perde. Il punteggio finale è dato dal numero di turni impiegati e, in caso di parità, dal numero di interrogazioni. Il punteggio migliore è quello più basso.</p>
+			<p>Ci sono due livelli di difficoltà.</p>
+			<dl>
+				<dt>Facile</dt><dd>Per ogni verificatore, ogni codice è accettato al più da un criterio;</dd>
+				<dt>Classica</dt><dd>Per alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma <strong>il criterio usato dal verificatore è soltanto uno</strong>.</dd>
+			</dl>
+			<p>Segue una lista di enigmi. I primi sedici sono di difficoltà facile; gli ultimi quattro sono di difficoltà classica. Il primo enigma è quello usato come esempio sopra.</p>
+			<ol>
+				<li><a class="enigma" href="?e=C930EC05">C930EC05</a></li>
+				<li><a class="enigma" href="?e=E4CB7901">E4CB7901</a></li>
+				<li><a class="enigma" href="?e=0E87A048">0E87A048</a></li>
+				<li><a class="enigma" href="?e=271A60BF">271A60BF</a></li>
+				<li><a class="enigma" href="?e=BC4D2100">BC4D2100</a></li>
+				<li><a class="enigma" href="?e=8E4FA0D6">8E4FA0D6</a></li>
+				<li><a class="enigma" href="?e=3EBEAF00">3EBEAF00</a></li>
+				<li><a class="enigma" href="?e=54E6FB829B">54E6FB829B</a></li>
+				<li><a class="enigma" href="?e=7540897BF4">7540897BF4</a></li>
+				<li><a class="enigma" href="?e=EB2BFD2EC9">EB2BFD2EC9</a></li>
+				<li><a class="enigma" href="?e=9DEA2D8B72">9DEA2D8B72</a></li>
+				<li><a class="enigma" href="?e=6ECD2851">6ECD2851</a></li>
+				<li><a class="enigma" href="?e=21D46A12">21D46A12</a></li>
+				<li><a class="enigma" href="?e=DAE126B8">DAE126B8</a></li>
+				<li><a class="enigma" href="?e=FD00A7138D">FD00A7138D</a></li>
+				<li><a class="enigma" href="?e=8CD46CEAF577">8CD46CEAF577</a></li>
+				<li><a class="enigma" href="?e=937EA0CD">937EA0CD</a></li>
+				<li><a class="enigma" href="?e=74F118E9">74F118E9</a></li>
+				<li><a class="enigma" href="?e=A49F1A80EA">A49F1A80EA</a></li>
+				<li><a class="enigma" href="?e=5B056F7D5BB3">5B056F7D5BB3</a></li>
+			</ol>
+		</div>
+		<div class="hidden tab">
+			<form id="generateForm">
+				<label for="difficulty" id="difficultyLabel">Difficoltà</label>
+				<select id="difficulty">
+					<option>facile</option>
+					<option selected="">classica</option>
+				</select>
+				<label for="size" id="sizeLabel">Verificatori</label>
+				<select id="size">
+					<option>1</option>
+					<option>2</option>
+					<option>3</option>
+					<option>4</option>
+					<option>5</option>
+					<option selected="">6</option>
+					<option>7</option>
+					<option>8</option>
+				</select>
+				<button id="generateButton" type="submit">Genera</button>
+				<button class="hidden" id="cancelButton" type="button">Annulla</button>
+			</form>
+		</div>
+		<div class="hidden tab">
+			<form id="importForm">
+				<label for="id">ID</label>
+				<input id="id" maxlength="16" minlength="2" pattern="([\dA-Fa-f]{2}){1,8}" required="" size="16"/>
+				<button disabled="" id="importButton" type="submit">Importa</button>
+			</form>
+			<dialog closedby="any" id="dialog">
+				<div class="flexRow">
+					<span class="error hidden" id="errorNoCriterion">L’enigma usa un criterio inesistente.</span>
+					<span class="error hidden" id="errorNoUniqueSolution">L’enigma ha più di una soluzione.</span>
+					<span class="error hidden" id="errorNoSolution">L’enigma non ha soluzione.</span>
+					<span class="error hidden" id="errorRedundand">L’enigma ha uno o più criteri ridondanti.</span>
+					<button command="close" commandfor="dialog" type="button">
+						<svg viewBox="0 0 3 3" xmlns="http://www.w3.org/2000/svg">
+							<path d="
+								M0,0 3,3
+								M0,3 3,0
+							" fill="none" stroke="currentColor"/>
+						</svg>
+						Chiudi
+					</button>
+				</div>
+			</dialog>
+		</div>
+		<div class="hidden" id="play">
+			<div class="flexRow">
+				<a class="enigma" id="link"></a>
+				<button id="copy" type="button">
+					<svg viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
+						<path d="
+							M16,1l5,5v15h-14v-20h9v5h5
+							M10,5h6
+							M10,9h8
+							M10,13h8
+							M10,17h8
+							M7,4h-3v20h14v-3
+						" fill="none" stroke="currentColor"/>
+					</svg>
+					Copia
+				</button>
+				<button class="hidden" id="share" type="button">
+					<svg viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
+						<style>
+							circle {
+								fill: currentColor;
+							}
+						</style>
+						<path d="M5,1 1,3 5,5" fill="none" stroke="currentColor"/>
+						<circle cx="5" cy="1" r="1"/>
+						<circle cx="1" cy="3" r="1"/>
+						<circle cx="5" cy="5" r="1"/>
+					</svg>
+					Condividi
+				</button>
+			</div>
+			<div class="verifiers" id="verifiers"></div>
+			<form id="questionForm">
+				<label for="code">Codice</label>
+				<input id="code" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
+				<label for="verifier" id="verifierLabel">Verificatore</label>
+				<select id="verifier"></select>
+				<button id="questionButton" type="submit">Interroga</button>
+			</form>
+			<table id="questionsTable">
+				<thead>
+					<tr><th>Codice</th><th>Verificatore</th><th>Esito</th></tr>
+				</thead>
+				<tbody id="questionsTBody"></tbody>
+			</table>
+			<form id="solveForm">
+				<table id="solutionTable">
+					<thead>
+						<tr><th colspan="3">Soluzione</th></tr>
+					</thead>
+					<tbody id="solutionTBody">
+						<tr><td><span class="x">5</span></td><td><span class="y">5</span></td><td><span class="z">5</span></td></tr>
+						<tr><td><span class="x">4</span></td><td><span class="y">4</span></td><td><span class="z">4</span></td></tr>
+						<tr><td><span class="x">3</span></td><td><span class="y">3</span></td><td><span class="z">3</span></td></tr>
+						<tr><td><span class="x">2</span></td><td><span class="y">2</span></td><td><span class="z">2</span></td></tr>
+						<tr><td><span class="x">1</span></td><td><span class="y">1</span></td><td><span class="z">1</span></td></tr>
+					</tbody>
+				</table>
+				<button id="solveButton" type="submit">Verifica</button>
+				<output class="hidden" id="result"></output>
+			</form>
+		</div>
+		<script src="worker.js"></script>
+		<script>
+			/*<![CDATA[*/
+			'use strict';
+			{
+				class Criterion {
+					static all = [];
+					static easy = [];
+					static count = 0;
+					static lastVerifier = -1;
+					static lastIndex;
+					constructor(verifier, func, description) {
+						this.verifier = verifier;
+						if (verifier == this.constructor.lastVerifier) {
+							this.index = ++this.constructor.lastIndex;
+						} else {
+							this.constructor.lastVerifier = verifier;
+							this.constructor.lastIndex = 0;
+							this.index = 0;
+						}
+						this.description = description
+							.replaceAll('<', '&lt;')
+							.replaceAll('>', '&gt;')
+							.replaceAll(/([xyz])/g, '<var class="$1">$1</var>');
+						this.accepts = newArray(125);
+						this.accepted = [];
+						this.rejected = [];
+						let i = 0;
+						for (let x = 1; x <= 5; ++x) {
+							for (let y = 1; y <= 5; ++y) {
+								for (let z = 1; z <= 5; ++z) {
+									this.accepts[i] = func(x, y, z);
+									(this.accepts[i] ? this.accepted : this.rejected).push(i++);
+								}
+							}
+						}
+						this.compatible = this.constructor.all.map(c => c.verifier != this.verifier && (this.accepted.length < c.accepted.length ? this.accepted.some(s => c.accepts[s]) : c.accepted.some(s => this.accepts[s])) && this.rejected.some(s => c.accepts[s]) && c.rejected.some(s => this.accepts[s]));
+						this.id = this.constructor.count++;
+						this.constructor.all.push(this);
+						if (verifier < 25) {
+							this.constructor.easy.push(this);
+						}
+					}
+				}
+				const newArray = (length, func) => Array.from({length}, func && ((_, i) => func(i)));
+				const mapInPlace = (array, func) => {
+					for (let i = 0; i < array.length; ++i) {
+						array[i] = func(array[i], i);
+					}
+					return array;
+				};
+				const addClasses = (element, ...classes) => {
+					element.classList.add(...classes);
+					return element;
+				};
+				const create = (tag, html) => {
+					const element = document.createElement(tag);
+					if (html) {
+						element.innerHTML = html;
+					}
+					return element;
+				};
+				const append = (element, ...elements) => {
+					element.append(...elements);
+					return element;
+				};
+				const onClick = (element, left, right) => {
+					element.addEventListener('click', left);
+					if (right) {
+						element.addEventListener('contextmenu', right);
+					}
+					return element;
+				};
+				const show = (element, animation) => {
+					if (animation) {
+						addClasses(element, animation);
+					}
+					element.classList.remove('hidden');
+					return element;
+				};
+				const hide = element => addClasses(element, 'hidden');
+				const toggle = (element, array) => {
+					element.classList.toggle('deleted');
+					let allDeleted = true;
+					let guess = null;
+					for (const other of array) {
+						other.classList.remove('guess');
+						if (!other.classList.contains('deleted')) {
+							if (guess) {
+								guess = null;
+								break;
+							}
+							allDeleted = false;
+							guess = other;
+						}
+					}
+					if (guess) {
+						addClasses(guess, 'guess');
+						return 1;
+					}
+					return -allDeleted;
+				};
+				const choose = (element, array) => {
+					if (element.classList.contains('guess')) {
+						element.classList.remove('guess');
+						for (const other of array) {
+							other.classList.remove('deleted');
+						}
+						return 0;
+					}
+					for (const other of array) {
+						other.classList.remove('guess');
+						addClasses(other, 'deleted');
+					}
+					element.classList.remove('deleted');
+					addClasses(element, 'guess');
+					return 1;
+				};
+				const color = (element, n, flash) => {
+					switch (n) {
+					case -1:
+						element.classList.remove('green');
+						addClasses(element, 'red');
+						if (flash) {
+							addClasses('flashesRed');
+						}
+						return false;
+					case 0:
+						element.classList.remove('green', 'red');
+						if (flash) {
+							addClasses('flashes');
+						}
+						return false;
+					case 1:
+						element.classList.remove('red');
+						addClasses(element, 'green');
+						if (flash) {
+							addClasses('flashesGreen');
+						}
+						return true;
+					}
+				};
+				const headers = [...document.getElementById('headers').children];
+				const dialog = document.getElementById('dialog');
+				const errors = [...document.getElementsByClassName('error')];
+				const errorNoCriterion = document.getElementById('errorNoCriterion');
+				const errorNoUniqueSolution = document.getElementById('errorNoUniqueSolution');
+				const errorNoSolution = document.getElementById('errorNoSolution');
+				const errorRedundand = document.getElementById('errorRedundand');
+				const play = document.getElementById('play');
+				const link = document.getElementById('link');
+				const verifiers = document.getElementById('verifiers');
+				const questionsTable = document.getElementById('questionsTable');
+				const questionsTBody = document.getElementById('questionsTBody');
+				const solutionTable = document.getElementById('solutionTable');
+				const solutionTBody = document.getElementById('solutionTBody');
+				const showError = error => {
+					errors.forEach(hide);
+					show(error);
+					dialog.showModal();
+				};
+				const allVerifiers = [
+					[
+						new Criterion(0, (x, y, z) => x == 1, 'x = 1'),
+						new Criterion(0, (x, y, z) => x > 1, 'x > 1'),
+					],
+					[
+						new Criterion(1, (x, y, z) => x < 3, 'x < 3'),
+						new Criterion(1, (x, y, z) => x == 3, 'x = 3'),
+						new Criterion(1, (x, y, z) => x > 3, 'x > 3'),
+					],
+					[
+						new Criterion(2, (x, y, z) => y < 3, 'y < 3'),
+						new Criterion(2, (x, y, z) => y == 3, 'y = 3'),
+						new Criterion(2, (x, y, z) => y > 3, 'y > 3'),
+					],
+					[
+						new Criterion(3, (x, y, z) => y < 4, 'y < 4'),
+						new Criterion(3, (x, y, z) => y == 4, 'y = 4'),
+						new Criterion(3, (x, y, z) => y > 4, 'y > 4'),
+					],
+					[
+						new Criterion(4, (x, y, z) => x % 2 == 0, 'x è pari'),
+						new Criterion(4, (x, y, z) => x % 2 == 1, 'x è dispari'),
+					],
+					[
+						new Criterion(5, (x, y, z) => y % 2 == 0, 'y è pari'),
+						new Criterion(5, (x, y, z) => y % 2 == 1, 'y è dispari'),
+					],
+					[
+						new Criterion(6, (x, y, z) => z % 2 == 0, 'z è pari'),
+						new Criterion(6, (x, y, z) => z % 2 == 1, 'z è dispari'),
+					],
+					[
+						new Criterion(7, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 0, 'nessun 1'),
+						new Criterion(7, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 1, 'un 1'),
+						new Criterion(7, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 2, 'due 1'),
+						new Criterion(7, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 3, 'tre 1'),
+					],
+					[
+						new Criterion(8, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 0, 'nessun 3'),
+						new Criterion(8, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 1, 'un 3'),
+						new Criterion(8, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 2, 'due 3'),
+						new Criterion(8, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 3, 'tre 3'),
+					],
+					[
+						new Criterion(9, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 0, 'nessun 4'),
+						new Criterion(9, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 1, 'un 4'),
+						new Criterion(9, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 2, 'due 4'),
+						new Criterion(9, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 3, 'tre 4'),
+					],
+					[
+						new Criterion(10, (x, y, z) => x < y, 'x < y'),
+						new Criterion(10, (x, y, z) => x == y, 'x = y'),
+						new Criterion(10, (x, y, z) => x > y, 'x > y'),
+					],
+					[
+						new Criterion(11, (x, y, z) => x < z, 'x < z'),
+						new Criterion(11, (x, y, z) => x == z, 'x = z'),
+						new Criterion(11, (x, y, z) => x > z, 'x > z'),
+					],
+					[
+						new Criterion(12, (x, y, z) => y < z, 'y < z'),
+						new Criterion(12, (x, y, z) => y == z, 'y = z'),
+						new Criterion(12, (x, y, z) => y > z, 'y > z'),
+					],
+					[
+						new Criterion(13, (x, y, z) => x < y && x < z, 'x < y e x < z'),
+						new Criterion(13, (x, y, z) => y < x && y < z, 'y < x e y < z'),
+						new Criterion(13, (x, y, z) => z < x && z < y, 'z < x e z < y'),
+					],
+					[
+						new Criterion(14, (x, y, z) => x > y && x > z, 'x > y e x > z'),
+						new Criterion(14, (x, y, z) => y > x && y > z, 'y > x e y > z'),
+						new Criterion(14, (x, y, z) => z > x && z > y, 'z > x e z > y'),
+					],
+					[
+						new Criterion(15, (x, y, z) => x % 2 + y % 2 + z % 2 < 2, 'almeno due cifre pari'),
+						new Criterion(15, (x, y, z) => x % 2 + y % 2 + z % 2 > 1, 'almeno due cifre dispari'),
+					],
+					[
+						new Criterion(16, (x, y, z) => x % 2 + y % 2 + z % 2 == 3, 'nessuna cifra pari'),
+						new Criterion(16, (x, y, z) => x % 2 + y % 2 + z % 2 == 2, 'una cifra pari'),
+						new Criterion(16, (x, y, z) => x % 2 + y % 2 + z % 2 == 1, 'due cifre pari'),
+						new Criterion(16, (x, y, z) => x % 2 + y % 2 + z % 2 == 0, 'tre cifre pari'),
+					],
+					[
+						new Criterion(17, (x, y, z) => (x + y + z) % 2 == 0, 'x+y+z è pari'),
+						new Criterion(17, (x, y, z) => (x + y + z) % 2 == 1, 'x+y+z è dispari'),
+					],
+					[
+						new Criterion(18, (x, y, z) => x + y < 6, 'x+y < 6'),
+						new Criterion(18, (x, y, z) => x + y == 6, 'x+y = 6'),
+						new Criterion(18, (x, y, z) => x + y > 6, 'x+y > 6'),
+					],
+					[
+						new Criterion(19, (x, y, z) => (x == y) + (x == z) + (y == z) == 3, 'x = y = z'),
+						new Criterion(19, (x, y, z) => (x == y) + (x == z) + (y == z) == 1, 'due cifre uguali fra loro e una diversa'),
+						new Criterion(19, (x, y, z) => (x == y) + (x == z) + (y == z) == 0, 'tre cifre diverse fra loro'),
+					],
+					[
+						new Criterion(20, (x, y, z) => (x == y) + (x == z) + (y == z) != 1, 'x = y = z oppure tre cifre diverse fra loro'),
+						new Criterion(20, (x, y, z) => (x == y) + (x == z) + (y == z) == 1, 'due cifre uguali fra loro e una diversa'),
+					],
+					[
+						new Criterion(21, (x, y, z) => x < y && y < z, 'x < y < z'),
+						new Criterion(21, (x, y, z) => x > y && y > z, 'x > y > z'),
+						new Criterion(21, (x, y, z) => !(x < y && y < z || x > y && y > z), 'né x < y < z né x > y > z'),
+					],
+					[
+						new Criterion(22, (x, y, z) => x + y + z < 6, 'x+y+z < 6'),
+						new Criterion(22, (x, y, z) => x + y + z == 6, 'x+y+z = 6'),
+						new Criterion(22, (x, y, z) => x + y + z > 6, 'x+y+z > 6'),
+					],
+					[
+						new Criterion(23, (x, y, z) => (x + 1 == y) + (y + 1 == z) == 0, 'x+1 ≠ y e y+1 ≠ z'),
+						new Criterion(23, (x, y, z) => (x + 1 == y) + (y + 1 == z) == 1, 'x+2 = y+1 ≠ z oppure x+2 ≠ y+1 = z'),
+						new Criterion(23, (x, y, z) => (x + 1 == y) + (y + 1 == z) == 2, 'x+2 = y+1 = z'),
+					],
+					[
+						new Criterion(24, (x, y, z) => (x + 1 == y || x == y + 1) + (y + 1 == z || y == z + 1) == 0, 'x±1 ≠ y e y±1 ≠ z'),
+						new Criterion(24, (x, y, z) => (x + 1 == y || x == y + 1) + (y + 1 == z || y == z + 1) == 1, 'esattamente una fra x±1 = y e y±1 = z'),
+						new Criterion(24, (x, y, z) => x + 1 == y && y + 1 == z || x == y + 1 && y == z + 1, 'x+2 = y+1 = z oppure x = y+1 = z+2'),
+					],
+					[
+						new Criterion(25, (x, y, z) => x < 3, 'x < 3'),
+						new Criterion(25, (x, y, z) => y < 3, 'y < 3'),
+						new Criterion(25, (x, y, z) => z < 3, 'z < 3'),
+					],
+					[
+						new Criterion(26, (x, y, z) => x < 4, 'x < 4'),
+						new Criterion(26, (x, y, z) => y < 4, 'y < 4'),
+						new Criterion(26, (x, y, z) => z < 4, 'z < 4'),
+					],
+					[
+						new Criterion(27, (x, y, z) => x == 1, 'x = 1'),
+						new Criterion(27, (x, y, z) => y == 1, 'y = 1'),
+						new Criterion(27, (x, y, z) => z == 1, 'z = 1'),
+					],
+					[
+						new Criterion(28, (x, y, z) => x == 3, 'x = 3'),
+						new Criterion(28, (x, y, z) => y == 3, 'y = 3'),
+						new Criterion(28, (x, y, z) => z == 3, 'z = 3'),
+					],
+					[
+						new Criterion(29, (x, y, z) => x == 4, 'x = 4'),
+						new Criterion(29, (x, y, z) => y == 4, 'y = 4'),
+						new Criterion(29, (x, y, z) => z == 4, 'z = 4'),
+					],
+					[
+						new Criterion(30, (x, y, z) => x > 1, 'x > 1'),
+						new Criterion(30, (x, y, z) => y > 1, 'y > 1'),
+						new Criterion(30, (x, y, z) => z > 1, 'z > 1'),
+					],
+					[
+						new Criterion(31, (x, y, z) => x > 3, 'x > 3'),
+						new Criterion(31, (x, y, z) => y > 3, 'y > 3'),
+						new Criterion(31, (x, y, z) => z > 3, 'z > 3'),
+					],
+					[
+						new Criterion(32, (x, y, z) => x % 2 == 0, 'x è pari'),
+						new Criterion(32, (x, y, z) => x % 2 == 1, 'x è dispari'),
+						new Criterion(32, (x, y, z) => y % 2 == 0, 'y è pari'),
+						new Criterion(32, (x, y, z) => y % 2 == 1, 'y è dispari'),
+						new Criterion(32, (x, y, z) => z % 2 == 0, 'z è pari'),
+						new Criterion(32, (x, y, z) => z % 2 == 1, 'z è dispari'),
+					],
+					[
+						new Criterion(33, (x, y, z) => x <= y && x <= z, 'x ≤ y e x ≤ z'),
+						new Criterion(33, (x, y, z) => y <= x && y <= z, 'y ≤ x e y ≤ z'),
+						new Criterion(33, (x, y, z) => z <= x && z <= y, 'z ≤ x e z ≤ y'),
+					],
+					[
+						new Criterion(34, (x, y, z) => x >= y && x >= z, 'x ≥ y e x ≥ z'),
+						new Criterion(34, (x, y, z) => y >= x && y >= z, 'y ≥ x e y ≥ z'),
+						new Criterion(34, (x, y, z) => z >= x && z >= y, 'z ≥ x e z ≥ y'),
+					],
+					[
+						new Criterion(35, (x, y, z) => (x + y + z) % 3 == 0, 'x+y+z è un multiplo di 3'),
+						new Criterion(35, (x, y, z) => (x + y + z) % 4 == 0, 'x+y+z è un multiplo di 4'),
+						new Criterion(35, (x, y, z) => (x + y + z) % 5 == 0, 'x+y+z è un multiplo di 5'),
+					],
+					[
+						new Criterion(36, (x, y, z) => x + y == 4, 'x+y = 4'),
+						new Criterion(36, (x, y, z) => x + z == 4, 'x+z = 4'),
+						new Criterion(36, (x, y, z) => y + z == 4, 'y+z = 4'),
+					],
+					[
+						new Criterion(37, (x, y, z) => x + y == 6, 'x+y = 6'),
+						new Criterion(37, (x, y, z) => x + z == 6, 'x+z = 6'),
+						new Criterion(37, (x, y, z) => y + z == 6, 'y+z = 6'),
+					],
+					[
+						new Criterion(38, (x, y, z) => x == 1, 'x = 1'),
+						new Criterion(38, (x, y, z) => x > 1, 'x > 1'),
+						new Criterion(38, (x, y, z) => y == 1, 'y = 1'),
+						new Criterion(38, (x, y, z) => y > 1, 'y > 1'),
+						new Criterion(38, (x, y, z) => z == 1, 'z = 1'),
+						new Criterion(38, (x, y, z) => z > 1, 'z > 1'),
+					],
+					[
+						new Criterion(39, (x, y, z) => x < 3, 'x < 3'),
+						new Criterion(39, (x, y, z) => x == 3, 'x = 3'),
+						new Criterion(39, (x, y, z) => x > 3, 'x > 3'),
+						new Criterion(39, (x, y, z) => y < 3, 'y < 3'),
+						new Criterion(39, (x, y, z) => y == 3, 'y = 3'),
+						new Criterion(39, (x, y, z) => y > 3, 'y > 3'),
+						new Criterion(39, (x, y, z) => z < 3, 'z < 3'),
+						new Criterion(39, (x, y, z) => z == 3, 'z = 3'),
+						new Criterion(39, (x, y, z) => z > 3, 'z > 3'),
+					],
+					[
+						new Criterion(40, (x, y, z) => x < 4, 'x < 4'),
+						new Criterion(40, (x, y, z) => x == 4, 'x = 4'),
+						new Criterion(40, (x, y, z) => x > 4, 'x > 4'),
+						new Criterion(40, (x, y, z) => y < 4, 'y < 4'),
+						new Criterion(40, (x, y, z) => y == 4, 'y = 4'),
+						new Criterion(40, (x, y, z) => y > 4, 'y > 4'),
+						new Criterion(40, (x, y, z) => z < 4, 'z < 4'),
+						new Criterion(40, (x, y, z) => z == 4, 'z = 4'),
+						new Criterion(40, (x, y, z) => z > 4, 'z > 4'),
+					],
+					[
+						new Criterion(41, (x, y, z) => x < y && x < z, 'x < y e x < z'),
+						new Criterion(41, (x, y, z) => x > y && x > z, 'x > y e x > z'),
+						new Criterion(41, (x, y, z) => y < x && y < z, 'y < x e y < z'),
+						new Criterion(41, (x, y, z) => y > x && y > z, 'y > x e y > z'),
+						new Criterion(41, (x, y, z) => z < x && z < y, 'z < x e z < y'),
+						new Criterion(41, (x, y, z) => z > x && z > y, 'z > x e z > y'),
+					],
+					[
+						new Criterion(42, (x, y, z) => x < y, 'x < y'),
+						new Criterion(42, (x, y, z) => x < z, 'x < z'),
+						new Criterion(42, (x, y, z) => x == y, 'x = y'),
+						new Criterion(42, (x, y, z) => x == z, 'x = z'),
+						new Criterion(42, (x, y, z) => x > y, 'x > y'),
+						new Criterion(42, (x, y, z) => x > z, 'x > z'),
+					],
+					[
+						new Criterion(43, (x, y, z) => y < x, 'y < x'),
+						new Criterion(43, (x, y, z) => y < z, 'y < z'),
+						new Criterion(43, (x, y, z) => y == x, 'y = x'),
+						new Criterion(43, (x, y, z) => y == z, 'y = z'),
+						new Criterion(43, (x, y, z) => y > x, 'y > x'),
+						new Criterion(43, (x, y, z) => y > z, 'y > z'),
+					],
+					[
+						new Criterion(44, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 0, 'nessun 1'),
+						new Criterion(44, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 0, 'nessun 3'),
+						new Criterion(44, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 1, 'un 1'),
+						new Criterion(44, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 1, 'un 3'),
+						new Criterion(44, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 2, 'due 1'),
+						new Criterion(44, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 2, 'due 3'),
+					],
+					[
+						new Criterion(45, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 0, 'nessun 3'),
+						new Criterion(45, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 0, 'nessun 4'),
+						new Criterion(45, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 1, 'un 3'),
+						new Criterion(45, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 1, 'un 4'),
+						new Criterion(45, (x, y, z) => (x == 3) + (y == 3) + (z == 3) == 2, 'due 3'),
+						new Criterion(45, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 2, 'due 4'),
+					],
+					[
+						new Criterion(46, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 0, 'nessun 1'),
+						new Criterion(46, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 0, 'nessun 4'),
+						new Criterion(46, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 1, 'un 1'),
+						new Criterion(46, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 1, 'un 4'),
+						new Criterion(46, (x, y, z) => (x == 1) + (y == 1) + (z == 1) == 2, 'due 1'),
+						new Criterion(46, (x, y, z) => (x == 4) + (y == 4) + (z == 4) == 2, 'due 4'),
+					],
+					[
+						new Criterion(47, (x, y, z) => x < y, 'x < y'),
+						new Criterion(47, (x, y, z) => x == y, 'x = y'),
+						new Criterion(47, (x, y, z) => x > y, 'x > y'),
+						new Criterion(47, (x, y, z) => x < z, 'x < z'),
+						new Criterion(47, (x, y, z) => x == z, 'x = z'),
+						new Criterion(47, (x, y, z) => x > z, 'x > z'),
+						new Criterion(47, (x, y, z) => y < z, 'y < z'),
+						new Criterion(47, (x, y, z) => y == z, 'y = z'),
+						new Criterion(47, (x, y, z) => y > z, 'y > z'),
+					],
+				];
+				{
+					const tabs = [...document.getElementsByClassName('tab')];
+					for (let i = 0; i < headers.length; ++i) {
+						headers[i].addEventListener('toggle', event => {
+							if (event.newState == 'open') {
+								for (let j = 0; j < headers.length; ++j) {
+									if (i == j) {
+										show(tabs[i]);
+									} else {
+										headers[j].open = false;
+									}
+								}
+							} else {
+								hide(tabs[i]);
+							}
+						});
+					}
+				}
+				{
+					const example = document.getElementById('example');
+					const exampleVerifiers = [
+						3,
+						8,
+						10,
+						13,
+					];
+					for (let i = 0; i < exampleVerifiers.length; ++i) {
+						append(
+							example,
+							append(
+								create('fieldset'),
+								create('legend', String.fromCodePoint('A'.codePointAt(0) + i)),
+								append(
+									addClasses(create('ol'), 'criteria'),
+									...allVerifiers[exampleVerifiers[i]].map(c => create('li', c.description)),
+								),
+							),
+						);
+					}
+				}
+				let criteria;
+				let solution;
+				let questions;
+				let lastCodeTd;
+				let turns;
+				const colors = newArray(3);
+				const setup = (setupCriteria, setupSolution, setupId) => {
+					criteria = setupCriteria;
+					solution = newArray(3);
+					for (let i = 2; i >= 0; --i) {
+						solution[i] = setupSolution % 5;
+						setupSolution = (setupSolution - solution[i]++) / 5;
+					}
+					solution = solution.join('');
+					questions = [];
+					lastCodeTd = null;
+					turns = 0;
+					colors.fill(0);
+					for (const header of headers) {
+						header.open = false;
+					}
+					link.href = `?e=${setupId}`;
+					link.innerText = setupId;
+					verifiers.innerText = '';
+					document.forms.questionForm.elements.verifier.innerText = '';
+					for (let i = 0; i < criteria.length; ++i) {
+						const letter = String.fromCodePoint('A'.codePointAt(0) + i);
+						append(
+							verifiers,
+							append(
+								create('fieldset'),
+								onClick(
+									addClasses(create('legend', letter), 'clickable'),
+									function() {
+										document.forms.questionForm.elements.verifier.value = this.innerText;
+										document.forms.questionForm.elements.verifier.onchange();
+									},
+								),
+								append(
+									addClasses(create('ol'), 'criteria'),
+									...allVerifiers[criteria[i].verifier].map(c => onClick(
+										addClasses(create('li', c.description), 'clickable'), 
+										function() {
+											if (this.classList.contains('clickable')) {
+												color(this.parentElement.parentElement, toggle(this, this.parentElement.children));
+											}
+										},
+										function(event) {
+											if (this.classList.contains('clickable')) {
+												event.preventDefault();
+												color(this.parentElement.parentElement, choose(this, this.parentElement.children));
+											}
+										},
+									)),
+								),
+							),
+						);
+						append(
+							document.forms.questionForm.elements.verifier,
+							create('option', letter),
+						);
+					}
+					document.forms.questionForm.elements.code.value = '';
+					document.forms.questionForm.elements.questionButton.disabled = true;
+					hide(questionsTable);
+					questionsTBody.innerText = '';
+					color(solutionTable, 0);
+					for (const tr of solutionTBody.children) {
+						for (let i = 0; i < 3; ++i) {
+							addClasses(tr.children[i], 'clickable');
+							tr.children[i].classList.remove('correct', 'deleted');
+						}
+					}
+					document.forms.solveForm.elements.solveButton.disabled = true;
+					hide(document.forms.solveForm.elements.result);
+					show(play, 'flashes');
+					play.scrollIntoView({
+						behavior: 'smooth',
+					});
+				};
+				const keys = newArray(768, () => [0n, 0n]);
+				{
+					const cut = x => x & 0xFFFFFFFFFFFFFFFFn;
+					const rotl = (x, k) => cut(x << k) | x >> 64n - k;
+					let s0 = 0xD9C5DCD52EE9BFC1n;
+					let s1 = 0xC0D5E5B2B57633FCn;
+					let s2 = 0x1B5F320C40C7113Bn;
+					let s3 = 0x393842EB45C104A0n;
+					for (let i = 0; i < keys.length; ++i) {
+						for (let j = 0; j < keys[i].length; ++j) {
+							for (let k = 0; k < 2; ++k) {
+								keys[i][j] = keys[i][j] << 64n | rotl(cut(s1 * 5n), 7n) * 9n;
+								const t = cut(s1 << 17n);
+								s2 ^= s0;
+								s3 ^= s1;
+								s1 ^= s2;
+								s0 ^= s3;
+								s2 ^= t;
+								s3 = rotl(s3, 45n);
+							}
+						}
+					}
+				}
+				const swapOrNotRound = (x, ki, li, max) => {
+					const xp = ki & max ^ x;
+					let lx = li & (x > xp ? x : xp);
+					let result = 0n;
+					while (lx) {
+						result ^= lx & 1n;
+						lx >>= 1n;
+					}
+					return result ? xp : x;
+				};
+				const importEnigma = (importId) => {
+					const importCriteria = newArray(importId.length / 2);
+					{
+						const max = (1n << BigInt(4 * importId.length)) - 1n;
+						let x = BigInt(`0x${importId}`);
+						for (let i = keys.length - 1; i >= 0; --i) {
+							x = swapOrNotRound(x, keys[i][0], keys[i][1], max);
+						}
+						for (let i = 0; i < importCriteria.length; ++i) {
+							const c = Number(x & 0xFFn);
+							if (c >= Criterion.all.length) {
+								showError(errorNoCriterion);
+								return;
+							}
+							importCriteria[i] = Criterion.all[c];
+							x >>= 8n;
+						}
+					}
+					importCriteria.sort((a, b) => a.id - b.id);
+					let importSolution = null;
+					for (const s of importCriteria[importCriteria.reduce(([pi, pl], c, i) => c.accepted.length < pl ? [i, c.accepted.length] : [pi, pl], [-1, 125])[0]].accepted) {
+						if (importCriteria.every(c => c.accepts[s])) {
+							if (importSolution) {
+								showError(errorNoUniqueSolution);
+								return;
+							}
+							importSolution = s;
+						}
+					}
+					if (importSolution == null) {
+						showError(errorNoSolution);
+						return;
+					}
+					if (!importCriteria.every(c => c.rejected.some(s => importCriteria.every(c2 => c == c2 || c2.accepts[s])))) {
+						showError(errorRedundand);
+						return;
+					}
+					setup(importCriteria, importSolution, importId);
+				};
+				for (const enigma of document.getElementsByClassName('enigma')) {
+					onClick(
+						enigma,
+						function(event) {
+							event.preventDefault();
+							importEnigma(this.innerText);
+						},
+					);
+				}
+				onClick(
+					document.getElementById('difficultyLabel'),
+					() => document.forms.generateForm.elements.difficulty.showPicker(),
+				);
+				onClick(
+					document.getElementById('sizeLabel'),
+					() => document.forms.generateForm.elements.size.showPicker(),
+				);
+				{
+					const url = URL.createObjectURL(new Blob([`'use strict';onmessage=${onmessage}`], {
+						type: "text/javascript",
+					}));
+					const workers = newArray(Math.min(navigator.hardwareConcurrency, Criterion.easy.length));
+					const end = () => {
+						mapInPlace(workers, w => {
+							w.terminate();
+							return null;
+						});
+						hide(document.forms.generateForm.elements.cancelButton);
+						show(document.forms.generateForm.elements.generateButton);
+						document.documentElement.classList.remove('progress');
+					};
+					document.forms.generateForm.onsubmit = event => {
+						event.preventDefault();
+						addClasses(document.documentElement, 'progress');
+						hide(document.forms.generateForm.elements.generateButton);
+						show(document.forms.generateForm.elements.cancelButton);
+						const cs = (document.forms.generateForm.elements.difficulty.selectedIndex ? Criterion.all : Criterion.easy).map(c => ({
+							item: c,
+							score: Math.random(),
+						}));
+						mapInPlace(cs.sort((a, b) => a.score - b.score), c => c.item);
+						const length = +document.forms.generateForm.elements.size.value;
+						let next = workers.length;
+						mapInPlace(workers, (_, i) => {
+							const worker = new Worker(url);
+							worker.onmessage = function(message) {
+								if (message.data) {
+									end();
+									const max = (1n << BigInt(8 * message.data.criteria.length)) - 1n;
+									let x = message.data.criteria.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
+									for (const key of keys) {
+										x = swapOrNotRound(x, key[0], key[1], max);
+									}
+									setup(message.data.criteria, message.data.solution, x.toString(16).toUpperCase().padStart(length * 2, '0'));
+								} else if (next < cs.length) {
+									this.postMessage({
+										criteria: cs,
+										length,
+										first: next++,
+									});
+								} else {
+									console.log('fine?');
+								}
+							}
+							worker.postMessage({
+								criteria: cs,
+								length,
+								first: i,
+							});
+							return worker;
+						});
+					};
+					onClick(
+						document.forms.generateForm.elements.cancelButton,
+						end,
+					);
+				}
+				document.forms.importForm.elements.id.onbeforeinput = event => {
+					if (event.data != null && /[^\dA-Fa-f]/.test(event.data)) {
+						event.preventDefault();
+					}
+				};
+				if ('autocapitalize' in document.forms.importForm.elements.id) {
+					document.forms.importForm.elements.id.autocapitalize = 'characters';
+				}
+				document.forms.importForm.elements.id.oninput = () => {
+					document.forms.importForm.elements.importButton.disabled = !document.forms.importForm.elements.id.validity.valid;
+				};
+				document.forms.importForm.elements.id.onchange = () => {
+					document.forms.importForm.elements.id.value = document.forms.importForm.elements.id.value.toUpperCase();
+				};
+				document.forms.importForm.onsubmit = event => {
+					event.preventDefault();
+					importEnigma(document.forms.importForm.elements.id.value);
+				};
+				play.onanimationend = () => play.classList.remove('flashes');
+				document.getElementById('copy').onclick = function() {
+					navigator.clipboard.writeText(link.href);
+					const copied = create('span', 'Copiato!');
+					addClasses(copied, 'copied');
+					copied.onanimationend = copied.remove;
+					this.appendChild(copied);
+				};
+				if (navigator.canShare) {
+					const share = document.getElementById('share');
+					share.onclick = () => {
+						navigator.share({url: link.href});
+					};
+					show(share);
+				}
+				document.forms.questionForm.elements.code.onbeforeinput = event => {
+					if (event.data != null && /[^1-5]/.test(event.data)) {
+						event.preventDefault();
+					}
+				};
+				document.forms.questionForm.elements.code.oninput = document.forms.questionForm.elements.verifier.onchange = () => {
+					document.forms.questionForm.elements.questionButton.disabled = !document.forms.questionForm.elements.code.validity.valid || questions.some(([c, v]) => c == document.forms.questionForm.elements.code.value && v == document.forms.questionForm.elements.verifier.value);
+				};
+				document.getElementById("verifierLabel").onclick = () => {
+					document.forms.questionForm.elements.verifier.showPicker();
+				};
+				const writeCode = code => `<span class="code"><span class="x">${code[0]}</span><span class="y">${code[1]}</span><span class="z">${code[2]}</span></span>`;
+				document.forms.questionForm.onsubmit = event => {
+					event.preventDefault();
+					document.forms.questionForm.elements.questionButton.disabled = true;
+					questions.push([document.forms.questionForm.elements.code.value, document.forms.questionForm.elements.verifier.value]);
+					const tr = create("tr");
+					{
+						const code = (document.forms.questionForm.elements.code.value[0] - 1) * 25 + (document.forms.questionForm.elements.code.value[1] - 1) * 5 + (document.forms.questionForm.elements.code.value[2] - 1);
+						if (document.forms.questionForm.elements.code.value == lastCodeTd?.firstChild?.innerText && lastCodeTd.rowSpan < 3) {
+							if (++lastCodeTd.rowSpan == 3) {
+								document.forms.questionForm.elements.code.value = "";
+							}
+						} else {
+							++turns;
+							const td = create('td', writeCode(document.forms.questionForm.elements.code.value));
+							td.onanimationend = () => {
+								td.classList.remove('flashesGreen');
+								td.classList.remove('flashesRed');
+							};
+							lastCodeTd = td;
+							tr.append(td);
+						}
+						const td = create('td');
+						if (criteria[document.forms.questionForm.elements.verifier.selectedIndex].accepts[code]) {
+							addClasses(tr, 'flashesGreen');
+							addClasses(lastCodeTd, 'flashesGreen');
+							td.innerHTML = '<span class="green">✔</span>';
+						} else {
+							addClasses(tr, 'flashesRed');
+							addClasses(lastCodeTd, 'flashesRed');
+							td.innerHTML = '<span class="red">✘</span>';
+						}
+						append(tr, create('td', document.forms.questionForm.elements.verifier.selectedOptions[0].innerText), td);
+					}
+					append(questionsTBody, tr);
+					show(questionsTable);
+					tr.scrollIntoView({
+						behavior: "smooth",
+						block: "end",
+					});
+				};
+				{
+					const solutionDigits = newArray(3, i => newArray(5, j => solutionTBody.children[j].children[i]));
+					for (const tr of solutionTBody.children) {
+						for (let i = 0; i < 3; ++i) {
+							onClick(
+								tr.children[i],
+								function() {
+									if (this.classList.contains('clickable')) {
+										colors[i] = toggle(this, solutionDigits[i]);
+										document.forms.solveForm.elements.solveButton.disabled = !color(solutionTable, Math.min(...colors));
+									}
+								},
+								function(event) {
+									if (this.classList.contains('clickable')) {
+										event.preventDefault();
+										colors[i] = choose(this, solutionDigits[i]);
+										document.forms.solveForm.elements.solveButton.disabled = !color(solutionTable, Math.min(...colors));
+									}
+								},
+							);
+						}
+					}
+				}
+				document.forms.solveForm.onsubmit = event => {
+					event.preventDefault();
+					for (const verifier of verifiers.children) {
+						for (const criterion of verifier.children[1].children) {
+							criterion.classList.remove('clickable');
+						}
+					}
+					document.forms.questionForm.elements.questionButton.disabled = true;
+					{
+						for (let i = 0; i < criteria.length; ++i) {
+							const correct = verifiers.children[i].children[1].children[criteria[i].index];
+							addClasses(correct, 'correct');
+							color(verifiers.children[i], correct.classList.contains('deleted') ? -1 : correct.classList.contains('guess'));
+						}
+						let guess = '';
+						for (let i = 0; i < 3; ++i) {
+							for (let j = 0; j < solutionTBody.children.length; ++j) {
+								solutionTBody.children[j].children[i].classList.remove('clickable');
+								if (solutionTBody.children[j].children[i].classList.contains("guess")) {
+									guess += 5 - j;
+								}
+							}
+						}
+						document.forms.solveForm.elements.solveButton.disabled = true;
+						if (guess == solution) {
+							solutionTable.classList.remove('red');
+							addClasses(solutionTable, 'green');
+							addClasses(solutionTable, 'flashesGreen');
+							document.forms.solveForm.elements.result.classList.remove('red');
+							addClasses(document.forms.solveForm.elements.result, 'green');
+							addClasses(document.forms.solveForm.elements.result, 'flashesGreen');
+							document.forms.solveForm.elements.result.innerText = `Hai vinto in ${turns} turni e ${questions.length} interrogazioni!`;
+						} else {
+							solutionTable.classList.remove('green');
+							addClasses(solutionTable, 'red');
+							addClasses(solutionTable, 'flashesRed');
+							document.forms.solveForm.elements.result.classList.remove('green');
+							addClasses(document.forms.solveForm.elements.result, 'red');
+							addClasses(document.forms.solveForm.elements.result, 'flashesRed');
+							document.forms.solveForm.elements.result.innerHTML = `Hai perso! Il codice corretto è ${writeCode(solution)}.`;
+						}
+					}
+					for (let i = 0; i < 3; ++i) {
+						addClasses(solutionTBody.children[5 - solution[i]].children[i], 'correct');
+					}
+					show(document.forms.solveForm.elements.result);
+					document.forms.solveForm.elements.result.scrollIntoView({
+						behavior: 'smooth',
+						block: 'end',
+					});
+				};
+				solutionTable.onanimationend = () => {
+					solutionTable.classList.remove('flashesGreen', 'flashesRed');
+				};
+				document.forms.solveForm.elements.result.onanimationend = () => {
+					document.forms.solveForm.elements.result.classList.remove('flashesGreen', 'flashesRed');
+				};
+				{
+					const e = new URLSearchParams(document.location.search).get('e');
+					if (e?.length && e.length <= 16 && !/[^\dA-Fa-f]/.test(e) && !(e.length % 2)) {
+						importEnigma(e);
+					}
+				}
+				document.documentElement.classList.remove('wait');
+				show(document.getElementById('headers'));
+				headers[0].open = true;
+				/*let s = "";
+				for (let cs of [
+					[[3, 1], [8, 0], [10, 0], [13, 2]],
+					[[2, 1], [6, 1], [9, 1], [13, 1]],
+					[[3, 0], [8, 2], [12, 2], [16, 0]],
+					[[2, 2], [7, 0], [14, 2], [15, 1]],
+					[[1, 1], [5, 1], [13, 0], [16, 1]],
+					[[1, 2], [6, 0], [9, 0], [12, 0]],
+					[[7, 1], [11, 2], [14, 1], [16, 2]],
+					[[2, 0], [4, 0], [8, 1], [14, 0], [15, 0]],
+					[[0, 1], [6, 0], [9, 2], [11, 0], [16, 2]],
+					[[1, 0], [5, 0], [7, 0], [11, 1], [14, 1]],
+					[[4, 1], [9, 0], [10, 2], [14, 2], [16, 1]],
+					[[3, 0], [8, 0], [17, 1], [19, 0]],
+					[[10, 1], [15, 1], [18, 0], [20, 1]],
+					[[1, 2], [12, 1], [16, 3], [19, 1]],
+					[[4, 0], [13, 0], [17, 0], [18, 2], [19, 2]],
+					[[1, 0], [6, 1], [11, 0], [15, 0], [18, 1], [21, 2]],
+					[[20, 1], [30, 2], [36, 0], [38, 0]],
+					[[22, 2], [27, 2], [40, 0], [47, 1]],
+					[[18, 0], [23, 0], [29, 2], [30, 1], [37, 1]],
+					[[10, 2], [21, 2], [29, 0], [32, 3], [33, 2], [39, 6]],
+				]) {
+					if (cs[0].length == 1) {
+						for (let v of cs) {
+							console.log(allVerifiers[v].map(c => c.description));
+						}
+					} else {
+						cs = cs.map(([v, c]) => allVerifiers[v][c]);
+						const max = (1n << BigInt(8 * cs.length)) - 1n;
+						let x = cs.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
+						for (let i = 0; i < keys.length; ++i) {
+							x = swapOrNotRound(x, i, max);
+						}
+						x = x.toString(16).toUpperCase().padStart(cs.length * 2, '0';
+						s += `<li><a class="enigma" href="?e=${x}">${x}</a></li>\n`;
+					}
+				}
+				console.log(s);*/
+			}
+			//]]>
+		</script>
+	</body>
+</html>
