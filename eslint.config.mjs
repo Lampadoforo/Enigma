@@ -1,39 +1,44 @@
 import {defineConfig} from 'eslint/config';
+import globals from 'globals';
 import html from '@html-eslint/eslint-plugin';
 import js from '@eslint/js';
 
-export default defineConfig([
-	{
-		extends: ['js/all'],
-		files: ['**/*.mjs'],
-		languageOptions: {
-			ecmaVersion: 11,
-		},
-		linterOptions: {
-			noInlineConfig: true,
-		},
-		plugins: {js},
-		rules: {
-			'func-names': [
-				'error',
-				'never',
-			],
-			'id-length': 'off',
-			'logical-assignment-operators': [
-				'error',
-				'always',
-				{
-					enforceForIfStatements: true,
-				},
-			],
-			'no-bitwise': 'off',
-			'no-ternary': 'off',
-			'one-var': [
-				'error',
-				'never',
-			],
-		},
+const configjs = (files, sourceType, globs = {}) => ({
+	extends: ['js/all'],
+	files: [files],
+	languageOptions: {
+		ecmaVersion: 11,
+		globals: globs,
+		sourceType,
 	},
+	linterOptions: {
+		noInlineConfig: true,
+	},
+	plugins: {js},
+	rules: {
+		'func-names': [
+			'error',
+			'never',
+		],
+		'id-length': 'off',
+		'logical-assignment-operators': [
+			'error',
+			'always',
+			{
+				enforceForIfStatements: true,
+			},
+		],
+		'no-bitwise': 'off',
+		'no-ternary': 'off',
+		'one-var': [
+			'error',
+			'never',
+		],
+	},
+});
+
+export default defineConfig([
+	configjs('**/*.mjs', 'module'),
 	{
 		extends: ['html/all'],
 		files: ['**/*.xhtml'],
@@ -90,4 +95,5 @@ export default defineConfig([
 			],
 		},
 	},
+	configjs('**/worker.js', 'script', globals.worker),
 ]);

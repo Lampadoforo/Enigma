@@ -18,6 +18,6 @@ jobs:
       - run: scripts/build.sh
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: index.html
+          path: index.xhtml
       - id: deployment
         uses: actions/deploy-pages@v5
