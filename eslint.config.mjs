@@ -5,7 +5,7 @@ import js from '@eslint/js';
 export default defineConfig([
 	{
 		extends: ['js/all'],
-		files: ['*.mjs'],
+		files: ['**/*.mjs'],
 		languageOptions: {
 			ecmaVersion: 11,
 		},
@@ -14,46 +14,52 @@ export default defineConfig([
 		},
 		plugins: {js},
 		rules: {
-			'array-callback-return': [
+			'func-names': [
 				'error',
+				'never',
+			],
+			'id-length': 'off',
+			'logical-assignment-operators': [
+				'error',
+				'always',
 				{
-					checkForEach: true,
+					enforceForIfStatements: true,
 				},
 			],
-			'no-inner-declarations': [
+			'no-bitwise': 'off',
+			'no-ternary': 'off',
+			'one-var': [
 				'error',
-				'both',
-			],
-			'no-irregular-whitespace': [
-				'error',
-				{
-					skipStrings: false,
-				},
-			],
-			'no-undef': [
-				'error',
-				{
-					typeof: true,
-				},
-			],
-			'no-unsafe-optional-chaining': [
-				'error',
-				{
-					disallowArithmeticOperators: true,
-				},
+				'never',
 			],
 		},
 	},
 	{
 		extends: ['html/all'],
-		files: ['*.xhtml'],
+		files: ['**/*.xhtml'],
 		language: 'html/html',
 		plugins: {html},
 		rules: {
+			'html/attrs-newline': [
+				'error',
+				{
+					ifAttrsMoreThan: 5,
+				},
+			],
+			'html/element-newline': [
+				'error',
+				{
+					skip: [
+						'dd',
+						'p',
+					],
+				},
+			],
 			'html/indent': [
 				'error',
 				'tab',
 			],
+			'html/lowercase': 'off',
 			'html/no-multiple-empty-lines': [
 				'error',
 				{
@@ -66,11 +72,14 @@ export default defineConfig([
 					selfClosing: 'always',
 				},
 			],
+			'html/require-explicit-size': 'off',
+			'html/require-form-method': 'off',
 			'html/require-open-graph-protocol': 'off',
 			'html/sort-attrs': [
 				'error',
 				{
 					priority: [
+						"xmlns",
 						"id",
 						"name",
 						"type",
