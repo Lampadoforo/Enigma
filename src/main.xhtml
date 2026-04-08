@@ -1221,10 +1221,24 @@
 					() => document.forms.generate_form.elements.size.showPicker(),
 				);
 				{
-					const url = URL.createObjectURL(new Blob([`'use strict';onmessage=${onmessage}`], {
+					const post = (cs, length, first, worker) => {
+						for (let i = first; i < cs.length; ++i) {
+							if (i + length - 1 < cs.length && cs[i].accepted.length > length - 1) {
+								worker.postMessage({
+									criteria: cs,
+									length,
+									first: i,
+								});
+								return i + 1;
+							}
+						}
+						console.log('fine?');
+						return cs.length;
+					};
+					const url = URL.createObjectURL(new Blob([workerString], {
 						type: "text/javascript",
 					}));
-					const workers = newArray(Math.min(navigator.hardwareConcurrency, Criterion.easy.length));
+					const workers = newArray(navigator.hardwareConcurrency);
 					const end = () => {
 						mapInPlace(workers, w => {
 							w.terminate();
@@ -1245,7 +1259,7 @@
 						}));
 						mapInPlace(cs.sort((a, b) => a.score - b.score), c => c.item);
 						const length = +this.elements.size.value;
-						let next = workers.length;
+						let first = 0;
 						mapInPlace(workers, (_, i) => {
 							const worker = new Worker(url);
 							worker.onmessage = function(message) {
@@ -1257,21 +1271,11 @@
 										x = swapOrNot(x, key[0], key[1], max);
 									}
 									setup(message.data.criteria, message.data.solution, x.toString(16).toUpperCase().padStart(length * 2, '0'));
-								} else if (next < cs.length) {
-									this.postMessage({
-										criteria: cs,
-										length,
-										first: next++,
-									});
 								} else {
-									console.log('fine?');
+									first = post(cs, length, first, this);
 								}
-							}
-							worker.postMessage({
-								criteria: cs,
-								length,
-								first: i,
-							});
+							};
+							first = post(cs, length, first, worker);
 							return worker;
 						});
 					};
