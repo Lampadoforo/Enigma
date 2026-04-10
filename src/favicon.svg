@@ -5,15 +5,15 @@
 			font-size: 2px;
 			text-anchor: middle;
 		}
-		.var {
+		.v {
 			font-style: italic;
 		}
 	</style>
 	<polygon fill="aqua" points="0,2 1,0 2,2"/>
-	<text class="var" x="1" y="1">x</text>
+	<text class="v" x="1" y="1">x</text>
 	<rect height="2" fill="yellow" x="2" width="2"/>
-	<text class="var" x="3" y="1">y</text>
+	<text class="v" x="3" y="1">y</text>
 	<circle cx="1" cy="3" fill="fuchsia" r="1"/>
-	<text class="var" x="1" y="3">z</text>
+	<text class="v" x="1" y="3">z</text>
 	<text fill="green" x="3" y="3">✔</text>
 </svg>

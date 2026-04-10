@@ -72,18 +72,13 @@ export default defineConfig([
 				'tab',
 			],
 			'html/lowercase': 'off',
-			'html/no-multiple-empty-lines': [
-				'error',
-				{
-					max: 0,
-				},
-			],
 			'html/require-closing-tags': [
 				'error',
 				{
 					selfClosing: 'always',
 				},
 			],
+			'html/require-content': 'off',
 			'html/require-explicit-size': 'off',
 			'html/require-form-method': 'off',
 			'html/require-open-graph-protocol': 'off',

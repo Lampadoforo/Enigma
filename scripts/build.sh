@@ -1,11 +1,16 @@
 #!/bin/sh
-set -e
+set -eu
 npm install svgo @swc/cli @swc/core > /dev/null
 favicon() {
-	favicon="$(npx svgo "$1" -o - --multipass | sed 's/ /%20/g;s/"/%22/g;s/#/%23/g;s/</%3C/g;s/>/%3E/g;s/{/7B/g;s/}/7D/g')"
+	substitutions=
+	for c in \  \" \# \< \> \{ \}; do
+		substitutions="${substitutions}s/${c}/%$(printf %X \'"${c}")/g;"
+	done
+	favicon="$(npx svgo "$1" -o - --multipass | sed "${substitutions}")"
 	sed "s_${1#*/}_data:image/svg+xml,${favicon}_"
 }
 icons() {
+	substitutions=
 	for file in "$@"; do
 		icon="$(npx svgo "${file}" -o - --multipass )"
 		substitutions="${substitutions}s_<img alt=\"\" src=\"${file#*/}\"/>_${icon}_;"

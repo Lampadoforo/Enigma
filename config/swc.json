@@ -9,7 +9,7 @@
 			"compress": {
 				"arguments": true,
 				"booleans_as_integers": true,
-				"drop_console": false,
+				"drop_console": true,
 				"ecma": 2020,
 				"reduce_funcs": true,
 				"unsafe": true,
@@ -23,9 +23,7 @@
 				"unsafe_regexp": true,
 				"unsafe_undefined": true,
 			},
-			"mangle": {
-				"topLevel": true,
-			},
+			"mangle": true,
 		},
 	},
 }
