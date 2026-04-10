@@ -81,7 +81,6 @@ export default defineConfig([
 			'html/require-content': 'off',
 			'html/require-explicit-size': 'off',
 			'html/require-form-method': 'off',
-			'html/require-open-graph-protocol': 'off',
 			'html/sort-attrs': [
 				'error',
 				{
@@ -89,6 +88,7 @@ export default defineConfig([
 						"xmlns",
 						"id",
 						"name",
+						"property",
 						"type",
 						"class",
 						"style",
