@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4">
+<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
 	<style>
 		text {
-			dominant-baseline: middle;
-			font-size: 2px;
+			font-size: 4px;
 			text-anchor: middle;
+			translate: 0 1px;
 		}
 		.v {
 			font-style: italic;
 		}
 	</style>
-	<polygon fill="aqua" points="0,2 1,0 2,2"/>
-	<text class="v" x="1" y="1">x</text>
-	<rect height="2" fill="yellow" x="2" width="2"/>
-	<text class="v" x="3" y="1">y</text>
-	<circle cx="1" cy="3" fill="fuchsia" r="1"/>
-	<text class="v" x="1" y="3">z</text>
-	<text fill="green" x="3" y="3">✔</text>
+	<polygon fill="aqua" points="0,4 2,0 4,4"/>
+	<text class="v" x="2" y="2">x</text>
+	<rect height="4" fill="yellow" x="4" width="4"/>
+	<text class="v" x="6" y="2">y</text>
+	<circle cx="2" cy="6" fill="fuchsia" r="2"/>
+	<text class="v" x="2" y="6">z</text>
+	<text fill="green" x="6" y="6">✔</text>
 </svg>
