@@ -24,6 +24,6 @@ worker() {
 }
 mkdir -p _site/
 favicon src/favicon.svg < src/main.xhtml | icons src/icons/*.svg | worker src/worker.js > _site/index.xhtml
-rsvg-convert --page-width 1200 --page-height 630 --top 15 --left 300 -w 600 -h 600 src/favicon.svg > og.png
+rsvg-convert --page-width 1200 --page-height 630 --top 15 --left 300 -w 600 -h 600 src/favicon.svg > _site/og.png
 npm install vnu-jar > /dev/null
 npx vnu-jar --Werror _site/index.xhtml
