@@ -1055,7 +1055,7 @@
 									addClasses(create('legend', letter), 'clickable'),
 									function() {
 										document.forms.question_form.elements.verifier.value = this.innerText;
-										disableQuestionFormIfCannotInterrogate();
+										disableQuestionButtonIfCannotInterrogate();
 									},
 								),
 								append(
@@ -1345,7 +1345,7 @@
 						let code = 0;
 						for (let i = 0; i < this.elements.code.length; ++i) {
 							code *= 5;
-							code += this.elements.code[i] - 1;
+							code += this.elements.code.value[i] - 1;
 						}
 						if (this.elements.code.value == lastCodeTd?.firstChild?.innerText && lastCodeTd.rowSpan < 3) {
 							if (++lastCodeTd.rowSpan == 3) {
