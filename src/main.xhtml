@@ -96,7 +96,7 @@
 				padding-bottom: var(--small-space);
 				padding-top: var(--small-space);
 			}
-			img {
+			img,svg {
 				height: 1lh;
 				width: 1lh;
 			}
@@ -303,6 +303,7 @@
 		<meta property="og:type" content="website"/>
 		<meta property="og:image" content="https://lampadoforo.github.io/Enigma/og.png"/>
 		<meta property="og:url" content="https://lampadoforo.github.io/Enigma/"/>
+		<meta property="og:locale" content="it_IT"/>
 	</head>
 	<body>
 		<nav id="headers" class="hidden">
@@ -1337,7 +1338,7 @@
 				);
 				document.forms.question_form.onsubmit = function(event) {
 					event.preventDefault();
-					this.elements.questionButton.disabled = true;
+					this.elements.question_button.disabled = true;
 					questions.push([this.elements.code.value, this.elements.verifier.value]);
 					const tr = create("tr");
 					{
