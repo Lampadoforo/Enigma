@@ -3,7 +3,7 @@
 		text {
 			font-size: 4px;
 			text-anchor: middle;
-			translate: 0 1px;
+			transform: translateY(1px);
 		}
 		.v {
 			font-style: italic;
