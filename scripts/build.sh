@@ -1,29 +1,32 @@
 #!/bin/sh
 set -eu
-sudo apt-get -qq install librsvg2-bin
-npm install svgo @swc/cli @swc/core > /dev/null
-favicon() {
-	substitutions=
-	for c in \  \" \# \< \> \{ \}; do
-		substitutions="${substitutions}s/${c}/%$(printf %X \'"${c}")/g;"
-	done
-	favicon="$(npx svgo "$1" -o - --multipass | sed "${substitutions}")"
-	sed "s_${1#*/}_data:image/svg+xml,${favicon}_"
-}
-icons() {
-	substitutions=
-	for file in "$@"; do
-		icon="$(npx svgo "${file}" -o - --multipass )"
-		substitutions="${substitutions}s_<img alt=\"\" src=\"${file#*/}\"/>_${icon}_;"
-	done
-	sed "${substitutions}"
-}
-worker() {
-	worker="$(sed -n '/functions/q;p' "$1" | npx swc -f "$1" --config-file config/swc.json -q | sed 's#&#\\&#g')"
-	grep -v "<script src=\"${1#*/}\"></script>" | sed "s#workerString#\`${worker}\`#"
-}
-mkdir -p _site/
-favicon src/favicon.svg < src/main.xhtml | icons src/icons/*.svg | worker src/worker.js > _site/index.xhtml
-rsvg-convert --page-width 1200 --page-height 630 --top 15 --left 300 -w 600 -h 600 src/favicon.svg > _site/og.png
-npm install vnu-jar > /dev/null
-npx vnu-jar --Werror _site/index.xhtml
+npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
+dir=_site/$(git branch --show-current)
+mkdir -p "${dir}/tmp/"
+css=$(sed 's|/\*.*\*/||g' src/style.css | tr -d '\t\n' | sed -f scripts/css.sed)
+echo "<style>${css}</style>" > "${dir}/tmp/style.css"
+favicon=
+for c in \  \" \# \< \> \{ \}; do
+	favicon="${favicon}s/${c}/%$(printf %X \'"${c}")/g;"
+done
+favicon=$(npx svgo src/favicon.svg -o - --multipass | sed "${favicon}")
+echo "<link type=\"image/svg+xml\" href=\"data:image/svg+xml,${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
+for file in src/icons/*; do
+	npx svgo "${file}" -o - --multipass > "${dir}/tmp/${file##*/}"
+done
+worker=$(sed -n '/functions/q;p' src/worker.js | npx swc -f src/worker.js --config-file config/swc.json -q)
+js=$({
+	echo "const workerString=\"'use strict';${worker}\";"
+	cat src/main.js
+} | npx swc -f src/main.js --config-file config/swc.json -q)
+echo "<script>//<![CDATA['use strict';{${js}}//]]></script>" > "${dir}/tmp/main.js"
+cmds=/worker.js/d\;
+for file in "${dir}"/tmp/*; do
+	cmds="${cmds}/${file##*/}/{
+		r ${file}
+		d
+	};"
+done
+sed "${cmds}" src/main.xhtml | tr -d '\t\n' | sed 's/<!\[CDATA\[/&\n/' > "${dir}/index.xhtml"
+rm -r "${dir}/tmp"
+npx vnu-jar --Werror "${dir}/index.xhtml"

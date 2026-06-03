@@ -1,11 +1,7 @@
-name: Deploy
+name: deploy
 on: push
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: "pages"
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 jobs:
   deploy:
@@ -15,7 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: scripts/build.sh
+      - uses: actions/setup-node@v6
+      - run: |
+          scripts/lint.sh
+          mkdir -p _site/main/
+          wget -O _site/main/index.xhtml https://lampadoforo.github.io/Enigma/
+          scripts/build.sh
+          cp _site/main/index.xhtml _site/
+          if [ ${{ github.ref_name }} = main ]; then
+            sudo apt-get install librsvg2-bin
+            rsvg-convert -o _site/og.png --page-width 1200 --page-height 630 --top 15 --left 300 -w 600 src/favicon.svg
+          else
+            wget -P _site/ https://lampadoforo.github.io/Enigma/og.png
+          fi
       - uses: actions/upload-pages-artifact@v4
       - id: deployment
         uses: actions/deploy-pages@v5

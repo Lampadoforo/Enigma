@@ -1,9 +1,8 @@
 {
 	"$schema": "https://swc.rs/schema.json",
 	"env": {
-		"target": "es2020",
+		"target": "es2020"
 	},
-	"minify": true,
 	"jsc": {
 		"minify": {
 			"compress": {
@@ -13,17 +12,17 @@
 				"ecma": 2020,
 				"reduce_funcs": true,
 				"unsafe": true,
+				"unsafe_Function": true,
 				"unsafe_arrows": true,
 				"unsafe_comps": true,
-				"unsafe_Function": true,
-				"unsafe_math": true,
-				"unsafe_symbols": true,
 				"unsafe_methods": true,
 				"unsafe_proto": true,
 				"unsafe_regexp": true,
-				"unsafe_undefined": true,
+				"unsafe_symbols": true,
+				"unsafe_undefined": true
 			},
-			"mangle": true,
-		},
+			"mangle": true
+		}
 	},
+	"minify": true
 }

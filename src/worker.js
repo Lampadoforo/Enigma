@@ -1,6 +1,6 @@
 'use strict';
 
-// Returns the intersection of the codes accepted by the criteria from 0 to index, or null if the last is incompatible
+// Return the intersection of the codes accepted by the criteria from 0 to index, or null if the last is incompatible
 const currentAccepted = (criteria, solution, index) => {
 	const a = criteria[solution[index].index];
 	for (let i = 0; i < index; i += 1) {
@@ -17,7 +17,7 @@ const currentAccepted = (criteria, solution, index) => {
 	return result.length < accepted.length && result.length > solution.length - 1 - index ? result : null;
 };
 
-// Checks whether a criterion rejects at least a code accepted by every other criteria
+// Check whether a criterion rejects at least a code accepted by every other criteria
 const isRedundant = (criteria, solution, index) => {
 	for (const code of criteria[solution[index].index].rejected) {
 		let i = 0;
@@ -31,7 +31,7 @@ const isRedundant = (criteria, solution, index) => {
 	return true;
 };
 
-// Checks whether at least one criterion is redundant; the last one is assumed to be already checked
+// Check whether at least one criterion is redundant; the last one is assumed to be already checked
 const isAnyRedundant = (criteria, solution) => {
 	for (let i = 0; i < solution.length - 1; i += 1) {
 		if (isRedundant(criteria, solution, i)) {
@@ -41,7 +41,7 @@ const isAnyRedundant = (criteria, solution) => {
 	return false;
 };
 
-// Returns the next index; can mutate solution
+// Return the next index; can mutate solution
 const nextIndex = (criteria, solution, index) => {
 	// If this criterion is ok and not the last, move right
 	if (solution[index].accepted && index < solution.length - 1) {
@@ -59,16 +59,9 @@ const nextIndex = (criteria, solution, index) => {
 	return 0;
 };
 
-// Generates an enigma using backtracking; the first criterion is chosen by the caller
+// Generate an enigma using backtracking; the first criterion is chosen by the caller
 onmessage = message => {
-	const {criteria, length, first} = message.data;
-	// If length === 1, the enigma is valid if and only if criteria[first] accepts exactly one code
-	if (length === 1) {
-		return postMessage(criteria[first].accepted.length === 1 ? {
-			criteria: [criteria[first]],
-			solution: criteria[first].accepted[0],
-		} : null);
-	}
+	const {criteria, first, length} = message.data;
 	// In solution[i].accepted there are the codes accepted by every criterion from 0 to i included
 	// In solution[i].index there is the criterion used
 	const solution = Array.from({length}, (_, i) => i ? {} : {
@@ -80,7 +73,7 @@ onmessage = message => {
 		if (i === length - 1 && solution[i].accepted?.length === 1 && !isAnyRedundant(criteria, solution)) {
 			return postMessage({
 				criteria: solution.map(s => criteria[s.index]).sort((a, b) => a.id - b.id),
-				solution: solution[length - 1].accepted,
+				solution: solution[length - 1].accepted[0],
 			});
 		}
 	}
