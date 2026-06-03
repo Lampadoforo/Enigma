@@ -1,5 +1,7 @@
 name: deploy
 on: push
+permissions:
+  id-token: write
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
