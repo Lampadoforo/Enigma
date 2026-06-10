@@ -39,6 +39,9 @@ html {
 		background-color: #8888;
 	}
 }
+:focus {
+	outline: var(--border-width) solid var(--color);;
+}
 a {
 	color: var(--color);
 }
@@ -137,7 +140,7 @@ table {
 	margin-left: auto;
 	margin-right: auto;
 }
-td,th {
+table,td,#questions_table>thead>tr>th {
 	border: var(--border-width) solid;
 }
 td.deleted::after {
@@ -254,7 +257,6 @@ th {
 	margin-top: var(--big-space);
 }
 #questions_table {
-	border: var(--border-width) solid;
 	border-collapse: collapse;
 }
 #solve_form {
