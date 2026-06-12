@@ -17,8 +17,10 @@ jobs:
       - uses: actions/setup-node@v6
       - run: |
           scripts/lint.sh
-          mkdir -p _site/main/
-          wget -O _site/main/index.xhtml https://lampadoforo.github.io/Enigma/
+          for branch in $(git branch | grep -v '\*'); do
+            mkdir -p "_site/${branch}/"
+            wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
+          done
           scripts/build.sh
           cp _site/main/index.xhtml _site/
           if [ ${{ github.ref_name }} = main ]; then
