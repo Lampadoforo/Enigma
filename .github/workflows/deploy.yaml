@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v6
       - run: |
           scripts/lint.sh
-          for branch in $(git branch -r | sed -n -E 's|^  origin/(\w+)$|\1|p'); do
+          for branch in $(curl https://api.github.com/repos/Lampadoforo/Enigma/branches | jq -r 'map(.name)[]'); do
             mkdir -p "_site/${branch}/"
             wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
           done
