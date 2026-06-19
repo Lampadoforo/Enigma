@@ -621,8 +621,8 @@ const setup = (setupCriteria, setupSolution, setupId) => {
 			tr.children[i].classList.remove('correct', 'deleted', 'guess');
 		}
 	}
-	document.forms.solve_form.elements.solve_button.disabled = true;
-	hide(document.forms.solve_form.elements.result);
+	document.forms.verify_form.elements.verify_button.disabled = true;
+	hide(document.forms.verify_form.elements.result);
 	show(play, 'flashes');
 	play.scrollIntoView({
 		behavior: 'smooth',
@@ -1032,7 +1032,7 @@ document.forms.question_form.onsubmit = function(event) {
 
 	// Color the border of the solution table and enable or disable the verify button
 	const repaintSolution = () => {
-		document.forms.solve_form.elements.solve_button.disabled = !color(solutionTable, Math.min(...colors));
+		document.forms.verify_form.elements.verify_button.disabled = !color(solutionTable, Math.min(...colors));
 	};
 
 	for (const tr of solutionTBody.children) {
@@ -1058,7 +1058,7 @@ document.forms.question_form.onsubmit = function(event) {
 }
 
 // Check the solution and end the game
-document.forms.solve_form.onsubmit = function(event) {
+document.forms.verify_form.onsubmit = function(event) {
 	event.preventDefault();
 	for (const verifier of verifiers.children) {
 		for (const criterion of verifier.children[1].children) {
@@ -1083,7 +1083,7 @@ document.forms.solve_form.onsubmit = function(event) {
 				}
 			}
 		}
-		this.elements.solve_button.disabled = true;
+		this.elements.verify_button.disabled = true;
 		if (guess === solution) {
 			color(solutionTable, 1, true);
 			color(this.elements.result, 1, true);
@@ -1106,7 +1106,7 @@ document.forms.solve_form.onsubmit = function(event) {
 
 // Make animations reset so that it is possible to flash again on next game
 makeAnimationReset(solutionTable);
-makeAnimationReset(document.forms.solve_form.elements.result);
+makeAnimationReset(document.forms.verify_form.elements.result);
 
 // Open the first tab
 headers[0].open = true;

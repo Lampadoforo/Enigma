@@ -28,6 +28,10 @@ html {
 	min-height: 100%;
 	text-align: center;
 }
+* {
+	margin: 0;
+	padding: 0;
+}
 /* Remove @supports in January 2027 */
 @supports(backdrop-filter: blur(1px)) {
 	::backdrop {
@@ -39,8 +43,8 @@ html {
 		background-color: #8888;
 	}
 }
-:focus {
-	outline: var(--border-width) solid var(--color);;
+:not(summary):focus {
+	outline: var(--border-width) solid var(--color);
 }
 a {
 	color: var(--color);
@@ -58,6 +62,9 @@ button,input {
 button:enabled,label,details,summary,select,.clickable {
 	cursor: pointer;
 }
+dd,#enigmas {
+	margin-left: 3ch;
+}
 details {
 	border-color: var(--color);
 	border-right-style: solid;
@@ -73,6 +80,9 @@ details:not([open]) {
 }
 dl,ol {
 	text-align: left;
+}
+dt {
+	font-weight: bold;
 }
 fieldset {
 	border: var(--border-width) solid;
@@ -109,6 +119,9 @@ label {
 		-webkit-user-select: none;
 	}
 }
+legend {
+	margin: auto;
+}
 li {
 	white-space: nowrap;
 }
@@ -123,14 +136,16 @@ li.deleted::after {
 }
 nav {
 	display: flex;
-	margin: 0;
-	padding: 0;
+	margin: var(--small-space) var(--small-space) 0;
 }
 ol {
 	color: var(--color);
 }
 p {
 	text-align: justify;
+}
+select {
+	padding-left: var(--small-space);
 }
 summary {
 	padding-bottom: var(--small-space);
@@ -162,8 +177,6 @@ th {
 }
 .criteria {
 	list-style-position: inside;
-	margin: 0;
-	padding: 0;
 }
 .criteria>li,#solution_tbody>tr>td {
 	border-style: solid;
@@ -199,6 +212,7 @@ th {
 	border-left-style: solid;
 	border-right-style: solid;
 	border-width: var(--border-width);
+	margin: 0 var(--small-space) var(--small-space);
 	padding: var(--big-space);
 }
 .verifiers {
@@ -245,6 +259,11 @@ th {
 #copy {
 	position: relative;
 }
+#dialog {
+	border-width: var(--border-width);
+	margin: auto;
+	padding: var(--big-space);
+}
 #generate_form,#import_form,#question_form {
 	display: inline-grid;
 	grid-template-columns: auto auto;
@@ -252,17 +271,23 @@ th {
 #id {
 	text-transform: uppercase;
 }
-#play>* {
-	margin-bottom: var(--big-space);
+#play>*,#start_here>:not(:first-child) {
 	margin-top: var(--big-space);
+}
+:is(#play,#start_here)>:not(:last-child) {
+	margin-bottom: var(--big-space);
 }
 #questions_table {
 	border-collapse: collapse;
 }
-#solve_form {
+#verify_form {
 	align-items: center;
 	display: flex;
 	flex-direction: column;
+}
+#verifiers {
+	margin-left: var(--small-space);
+	margin-right: var(--small-space);
 }
 @media(pointer: fine) {
 	:is(a,button:enabled,details,input,.clickable):hover{

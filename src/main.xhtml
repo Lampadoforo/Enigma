@@ -27,7 +27,7 @@
 				<summary>Importa</summary>
 			</details>
 		</nav>
-		<div class="tab">
+		<div id="start_here" class="tab">
 			<p><dfn>Enigma</dfn> è un’implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info">Turing Machine</a>. Turing Machine è ideato da Fabien Gridel e Yoann Levet e pubblicato da <a href="https://www.scorpionmasque.com">Scorpion Masqué</a>. <a href="https://github.com/Lampadoforo/Enigma/">Il codice sorgente di Enigma è disponibile su GitHub</a>.</p>
 			<p>Lo scopo del gioco è indovinare l’<strong>unico</strong> codice di tre cifre da 1 a 5, indicate con <var class="x">x</var>, <var class="y">y</var> e <var class="z">z</var>, <dfn>accettato</dfn> da tutti i <dfn>verificatori</dfn>.</p>
 			<p>Questo è un possibile enigma con quattro verificatori, indicati con le lettere da A a D.</p>
@@ -45,7 +45,7 @@
 				<dd>Per alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma <strong>il criterio usato dal verificatore è soltanto uno</strong>.</dd>
 			</dl>
 			<p>Segue una lista di enigmi. I primi sedici sono di difficoltà facile; gli ultimi quattro sono di difficoltà classica. Il primo è quello usato sopra come esempio.</p>
-			<ol>
+			<ol id="enigmas">
 				<li>
 					<a class="enigma" href="?e=C930EC05">C930EC05</a>
 				</li>
@@ -126,15 +126,24 @@
 					<option>7</option>
 					<option>8</option>
 				</select>
-				<button id="generate_button" type="submit">Genera</button>
-				<button id="cancel_button" type="button" class="hidden">Annulla</button>
+				<button id="generate_button" type="submit">
+					<img alt="" src="icons/generate.svg"/>
+					Genera
+				</button>
+				<button id="cancel_button" type="button" class="hidden">
+					<img alt="" src="icons/cancel.svg"/>
+					Annulla
+				</button>
 			</form>
 		</div>
 		<div class="hidden tab">
 			<form id="import_form">
 				<label for="id">ID</label>
 				<input id="id" type="text" maxlength="16" minlength="2" pattern="([\dA-Fa-f]{2}){1,8}" required="" size="16"/>
-				<button id="import_button" type="submit" disabled="">Importa</button>
+				<button id="import_button" type="submit" disabled="">
+					<img alt="" src="icons/import.svg"/>
+					Importa
+				</button>
 			</form>
 			<dialog id="dialog">
 				<div class="flex_row">
@@ -163,91 +172,105 @@
 				</button>
 			</div>
 			<div id="verifiers" class="verifiers"></div>
-			<form id="question_form">
-				<label for="code">Codice</label>
-				<input id="code" type="text" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
-				<label class="select" for="verifier">Verificatore</label>
-				<select id="verifier"></select>
-				<button id="question_button" type="submit">Interroga</button>
-			</form>
-			<table id="questions_table">
-				<thead>
-					<tr>
-						<th>Codice</th>
-						<th>Verificatore</th>
-						<th>Esito</th>
-					</tr>
-				</thead>
-				<tbody id="questions_tbody"></tbody>
-			</table>
-			<table id="solution_table">
-				<thead>
-					<tr>
-						<th colspan="3">Soluzione</th>
-					</tr>
-				</thead>
-				<tbody id="solution_tbody">
-					<tr>
-						<td>
-							<span class="x">5</span>
-						</td>
-						<td>
-							<span class="y">5</span>
-						</td>
-						<td>
-							<span class="z">5</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<span class="x">4</span>
-						</td>
-						<td>
-							<span class="y">4</span>
-						</td>
-						<td>
-							<span class="z">4</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<span class="x">3</span>
-						</td>
-						<td>
-							<span class="y">3</span>
-						</td>
-						<td>
-							<span class="z">3</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<span class="x">2</span>
-						</td>
-						<td>
-							<span class="y">2</span>
-						</td>
-						<td>
-							<span class="z">2</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<span class="x">1</span>
-						</td>
-						<td>
-							<span class="y">1</span>
-						</td>
-						<td>
-							<span class="z">1</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<form id="solve_form">
-				<button id="solve_button" type="submit">Verifica</button>
-				<output id="result" class="hidden"></output>
-			</form>
+			<div>
+				<form id="question_form">
+					<label for="code">Codice</label>
+					<input id="code" type="text" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
+					<label class="select" for="verifier">Verificatore</label>
+					<select id="verifier"></select>
+					<button id="question_button" type="submit">
+						<img alt="" src="icons/question.svg"/>
+						Interroga
+					</button>
+				</form>
+			</div>
+			<div>
+				<table id="questions_table">
+					<thead>
+						<tr>
+							<th>Codice</th>
+							<th>Verificatore</th>
+							<th>Esito</th>
+						</tr>
+					</thead>
+					<tbody id="questions_tbody"></tbody>
+				</table>
+			</div>
+			<div>
+				<table id="solution_table">
+					<thead>
+						<tr>
+							<th colspan="3">Soluzione</th>
+						</tr>
+					</thead>
+					<tbody id="solution_tbody">
+						<tr>
+							<td>
+								<span class="x">5</span>
+							</td>
+							<td>
+								<span class="y">5</span>
+							</td>
+							<td>
+								<span class="z">5</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="x">4</span>
+							</td>
+							<td>
+								<span class="y">4</span>
+							</td>
+							<td>
+								<span class="z">4</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="x">3</span>
+							</td>
+							<td>
+								<span class="y">3</span>
+							</td>
+							<td>
+								<span class="z">3</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="x">2</span>
+							</td>
+							<td>
+								<span class="y">2</span>
+							</td>
+							<td>
+								<span class="z">2</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="x">1</span>
+							</td>
+							<td>
+								<span class="y">1</span>
+							</td>
+							<td>
+								<span class="z">1</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div>
+				<form id="verify_form">
+					<button id="verify_button" type="submit">
+						<img alt="" src="icons/verify.svg"/>
+						Verifica
+					</button>
+					<output id="result" class="hidden"></output>
+				</form>
+			</div>
 		</div>
 		<script src="worker.js"></script>
 		<script src="main.js"></script>
