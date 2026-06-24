@@ -3,7 +3,7 @@
 		--background-color: black;
 		--color: white;
 	}
-	button:not(:hover)>img {
+	button:is(:not(:enabled),:not(:hover))>img {
 		filter: invert(1);
 	}
 }
@@ -12,7 +12,7 @@
 		--background-color: white;
 		--color: black;
 	}
-	button:hover>img {
+	button:enabled:hover>img {
 		filter: invert(1);
 	}
 }
@@ -27,6 +27,12 @@ html {
 	color-scheme: dark light;
 	min-height: 100%;
 	text-align: center;
+}
+/* Remove @supports in July 2026 */
+@supports selector(html:has(#dialog[open])) {
+	html:has(#dialog[open]) {
+		overflow: hidden;
+	}
 }
 * {
 	margin: 0;
@@ -87,6 +93,7 @@ dt {
 fieldset {
 	border: var(--border-width) solid;
 	flex: 1;
+	padding: 0 var(--small-space) var(--small-space);
 }
 form {
 	row-gap: var(--medium-space);
@@ -144,9 +151,6 @@ ol {
 p {
 	text-align: justify;
 }
-select {
-	padding-left: var(--small-space);
-}
 summary {
 	padding-bottom: var(--small-space);
 	padding-top: var(--small-space);
@@ -168,6 +172,9 @@ td.deleted::after {
 	position: absolute;
 	top: 0;
 	width: 100%;
+}
+input {
+	padding: 0 var(--small-space);
 }
 th {
 	padding: var(--small-space);
@@ -213,7 +220,7 @@ th {
 	border-right-style: solid;
 	border-width: var(--border-width);
 	margin: 0 var(--small-space) var(--small-space);
-	padding: var(--big-space);
+	padding: var(--medium-space);
 }
 .verifiers {
 	display: flex;
@@ -271,11 +278,17 @@ th {
 #id {
 	text-transform: uppercase;
 }
-#play>*,#start_here>:not(:first-child) {
+#play>* {
 	margin-top: var(--big-space);
 }
-:is(#play,#start_here)>:not(:last-child) {
+#play>:not(:last-child) {
 	margin-bottom: var(--big-space);
+}
+#start_here>:not(:first-child) {
+	margin-top: var(--medium-space);
+}
+#start_here>:not(:last-child) {
+	margin-bottom: var(--medium-space);
 }
 #questions_table {
 	border-collapse: collapse;

@@ -9,5 +9,5 @@ s/ {/{/g
 s/: /:/g
 s/, /,/g
 s/ }/}/g
-s/button:\(not(:\)\?hover)\?>img{[^}]*}//g
+s/button[a-z:(),]*>img{[^}]*}//g
 s/img/svg/

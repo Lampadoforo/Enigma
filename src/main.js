@@ -74,6 +74,7 @@ const hide = element => addClasses(element, 'hidden');
 // Toggle 'deleted' on element; if only one is not deleted, apply 'guess'; return the color of the container
 const toggle = (element, array) => {
 	element.classList.toggle('deleted');
+	element.classList.remove('guess');
 	let guess = null;
 	for (const e of array) {
 		if (!e.classList.contains('deleted')) {
@@ -982,10 +983,10 @@ document.forms.question_form.onsubmit = function(event) {
 	// Disable the question button, because questioning the same verifier with the same code is useless
 	this.elements.question_button.disabled = true;
 	// Save the question to disallow repeating it
-	questions.push([
-		this.elements.code.value,
-		this.elements.verifier.value,
-	]);
+	questions.push({
+		code: this.elements.code.value,
+		verifier: this.elements.verifier.value,
+	});
 	// Add a row to the table
 	const tr = create('tr');
 	{
