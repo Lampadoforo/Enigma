@@ -719,11 +719,12 @@ const importEnigmaAndPush = importId => {
 	}, '', link.href);
 };
 
-// Click on the dialog close button
-onClick(
-	document.getElementById('close_button'),
-	() => dialog.close(),
-);
+// Make clickable non-input elements not retain focus
+for (const focusable of document.querySelectorAll('summary,a,button')) {
+	focusable.onfocus = function() {
+		this.blur();
+	};
+}
 
 // Set up tabs showing up when headers are expanded
 {
@@ -928,6 +929,12 @@ document.forms.import_form.onsubmit = function(event) {
 	event.preventDefault();
 	importEnigmaAndPush(this.elements.id.value);
 };
+
+// Click on the dialog close button
+onClick(
+	document.getElementById('close_button'),
+	() => dialog.close(),
+);
 
 // Remove the class responsible for the animation to make it possible to flash it again
 play.onanimationend = function() {

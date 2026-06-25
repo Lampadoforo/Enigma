@@ -49,9 +49,6 @@ html {
 		background-color: #8888;
 	}
 }
-:not(summary):focus {
-	outline: var(--border-width) solid var(--color);
-}
 a {
 	color: var(--color);
 }
@@ -72,17 +69,7 @@ dd,#enigmas {
 	margin-left: 3ch;
 }
 details {
-	border-color: var(--color);
-	border-right-style: solid;
-	border-top-style: solid;
-	border-width: var(--border-width);
 	flex: 1;
-}
-details:first-child {
-	border-left-style: solid;
-}
-details:not([open]) {
-	border-bottom-style: solid;
 }
 dl,ol {
 	text-align: left;
@@ -152,8 +139,17 @@ p {
 	text-align: justify;
 }
 summary {
-	padding-bottom: var(--small-space);
-	padding-top: var(--small-space);
+	border-color: var(--color);
+	border-right-style: solid;
+	border-top-style: solid;
+	border-width: var(--border-width);
+	padding: var(--small-space) 0;
+}
+details:first-child>summary {
+	border-left-style: solid;
+}
+details:not([open])>summary {
+	border-bottom-style: solid;
 }
 table {
 	margin-left: auto;
@@ -279,10 +275,7 @@ th {
 	text-transform: uppercase;
 }
 #play>* {
-	margin-top: var(--big-space);
-}
-#play>:not(:last-child) {
-	margin-bottom: var(--big-space);
+	margin: var(--big-space) 0;
 }
 #start_here>:not(:first-child) {
 	margin-top: var(--medium-space);
@@ -303,11 +296,14 @@ th {
 	margin-right: var(--small-space);
 }
 @media(pointer: fine) {
-	:is(a,button:enabled,details,input,.clickable):hover{
+	:focus {
+		outline: var(--border-width) dashed var(--color);
+	}
+	:is(a,button:enabled,input,summary,.clickable):hover{
 		background-color: var(--color);
 		color: var(--background-color);
 	}
-	details:hover {
+	summary:hover {
 		border-bottom-style: solid;
 	}
 }
