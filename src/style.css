@@ -295,6 +295,14 @@ th {
 	margin-left: var(--small-space);
 	margin-right: var(--small-space);
 }
+@media(pointer: coarse) {
+	input:focus {
+		outline: var(--border-width) dashed var(--color);
+	}
+	:not(input):focus {
+		outline: none;
+	}
+}
 @media(pointer: fine) {
 	:focus {
 		outline: var(--border-width) dashed var(--color);
