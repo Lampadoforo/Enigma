@@ -1,0 +1,29 @@
+{
+	"$schema": "https://html-validate.org/schemas/config.json",
+	"extends": [
+		"html-validate:recommended",
+		"html-validate:document"
+	],
+	"rules": {
+		"attribute-boolean-style": [
+			"error",
+			{
+				"style": "empty"
+			}
+		],
+		"no-unknown-elements": "error",
+		"require-sri": [
+			"error",
+			{
+				"target": "crossorigin"
+			}
+		],
+		"void-style": [
+			"error",
+			{
+				"style": "selfclosing"
+			}
+		],
+		"wcag/h63": "off"
+	}
+}

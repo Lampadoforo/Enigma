@@ -9,9 +9,9 @@
 			font-style: italic;
 		}
 	</style>
-	<polygon fill="aqua" points="0,4 2,0 4,4"/>
+	<polygon fill="aqua" points="1.17,4 2.83,4 4,2.83 4,1.17 2.83,0 1.17,0 0,1.17 0,2.83"/>
 	<text class="v" x="2" y="2">x</text>
-	<rect height="4" fill="yellow" x="4" width="4"/>
+	<rect height="4" fill="yellow" width="4" x="4"/>
 	<text class="v" x="6" y="2">y</text>
 	<circle cx="2" cy="6" fill="fuchsia" r="2"/>
 	<text class="v" x="2" y="6">z</text>

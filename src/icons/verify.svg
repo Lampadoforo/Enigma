@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
+	<circle cx="11" cy="11" fill="none" r="10" stroke="currentColor"/>
+	<text fill="currentColor" font-size="20px" text-anchor="middle" transform="translate(0 7)" x="11" y="11">!</text>
+</svg>
