@@ -18,8 +18,10 @@ jobs:
       - run: |
           scripts/lint.sh
           for branch in $(curl https://api.github.com/repos/Lampadoforo/Enigma/branches | jq -r 'map(.name)[]'); do
-            mkdir -p "_site/${branch}/"
-            wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
+            if [ ${branch} != ${{ github.ref_name }} ]; then
+              mkdir -p "_site/${branch}/"
+              wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
+            fi
           done
           scripts/build.sh
           cp _site/main/index.xhtml _site/
