@@ -6,7 +6,7 @@
 			transform: translateY(1px);
 		}
 		.v {
-			font-style: italic;
+			font-weight: bold;
 		}
 	</style>
 	<polygon fill="aqua" points="1.17,4 2.83,4 4,2.83 4,1.17 2.83,0 1.17,0 0,1.17 0,2.83"/>

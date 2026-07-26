@@ -72,7 +72,7 @@ onmessage = message => {
 		solution[i].accepted = currentAccepted(criteria, solution, i);
 		if (i === length - 1 && solution[i].accepted?.length === 1 && !isAnyRedundant(criteria, solution)) {
 			return postMessage({
-				criteria: solution.map(s => criteria[s.index]).sort((a, b) => a.id - b.id),
+				criteria: solution.map(s => criteria[s.index]),
 				solution: solution[length - 1].accepted[0],
 			});
 		}

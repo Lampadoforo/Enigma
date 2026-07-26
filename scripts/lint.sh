@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+npm i shellcheck > /dev/null
+npx shellcheck -o all scripts/*.sh
 npm i vnu-jar > /dev/null
 npx vnu-jar --Werror --also-check-css --also-check-svg src/*.xhtml src/*.css src/*.svg src/icons/*.svg
 npm i html-validate > /dev/null

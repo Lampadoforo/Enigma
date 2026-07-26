@@ -28,11 +28,8 @@ html {
 	min-height: 100%;
 	text-align: center;
 }
-/* Remove @supports in July 2026 */
-@supports selector(html:has(#dialog[open])) {
-	html:has(#dialog[open]) {
-		overflow: hidden;
-	}
+html:has(#dialog[open]) {
+	overflow: hidden;
 }
 * {
 	margin: 0;
@@ -51,18 +48,21 @@ html {
 }
 a {
 	color: var(--color);
+	text-decoration-style: dotted;
 }
 button {
-	background-color: var(--background-color);
-	border: var(--border-width) solid var(--color);
 	display: inline-flex;
 	gap: var(--small-space);
 	padding: var(--small-space);
 }
 button,input {
 	appearance: none;
+	background-color: var(--background-color);
 }
-button:enabled,label,details,summary,select,.clickable {
+button,input {
+	border: var(--border-width) solid var(--color);
+}
+button:enabled,details,input[type="checkbox"],label,summary,select,.clickable {
 	cursor: pointer;
 }
 dd,#enigmas {
@@ -85,13 +85,12 @@ fieldset {
 form {
 	row-gap: var(--medium-space);
 }
-img {
+img,input[type="checkbox"] {
 	height: 1lh;
 	width: 1lh;
 }
 input {
-	background-color: var(--background-color);
-	border: var(--border-width) solid;
+	text-align: center;
 }
 input,.enigma {
 	font-family: monospace;
@@ -99,9 +98,18 @@ input,.enigma {
 input:invalid {
 	border-color: red;
 }
-label {
+input[type="checkbox"]:checked {
+	background-color: green;
+}
+input[type="checkbox"]::before {
+	content: "✔";
+}
+input[type="checkbox"]:not(:checked)::before {
+	visibility: hidden;
+}
+label[for] {
 	padding-right: var(--small-space);
-	text-align: right;
+	justify-self: right;
 }
 @supports(user-select: none) {
 	label,summary,.verifiers,#solution_tbody {
@@ -130,7 +138,6 @@ li.deleted::after {
 }
 nav {
 	display: flex;
-	margin: var(--small-space) var(--small-space) 0;
 }
 ol {
 	color: var(--color);
@@ -139,24 +146,15 @@ p {
 	text-align: justify;
 }
 summary {
-	border-color: var(--color);
-	border-right-style: solid;
-	border-top-style: solid;
-	border-width: var(--border-width);
+	border-bottom: var(--border-width) solid transparent;
 	padding: var(--small-space) 0;
 }
-details:first-child>summary {
-	border-left-style: solid;
-}
 details:not([open])>summary {
-	border-bottom-style: solid;
+	border-bottom-color: var(--color);
 }
 table {
 	margin-left: auto;
 	margin-right: auto;
-}
-table,td,#questions_table>thead>tr>th {
-	border: var(--border-width) solid;
 }
 td.deleted::after {
 	background-image:
@@ -169,17 +167,18 @@ td.deleted::after {
 	top: 0;
 	width: 100%;
 }
-input {
-	padding: 0 var(--small-space);
-}
 th {
 	padding: var(--small-space);
+}
+var {
+	font-style: normal;
+	font-weight: bold;
 }
 .correct {
 	background-color: green;
 }
 .criteria {
-	list-style-position: inside;
+	list-style-type: none;
 }
 .criteria>li,#solution_tbody>tr>td {
 	border-style: solid;
@@ -211,11 +210,6 @@ th {
 	cursor: progress;
 }
 .tab {
-	border-bottom-style: solid;
-	border-left-style: solid;
-	border-right-style: solid;
-	border-width: var(--border-width);
-	margin: 0 var(--small-space) var(--small-space);
 	padding: var(--medium-space);
 }
 .verifiers {
@@ -243,12 +237,20 @@ th {
 	text-align: center;
 	width: 1lh;
 }
-#cancel_button,#generate_button,#import_button,#question_button {
+#cancel_button,#checkboxes,#generate_button,#import_button,#question_button {
 	grid-column: span 2;
 	justify-self: center;
 }
+#checkboxes {
+	align-items: flex-start;
+	gap: var(--medium-space);
+}
+#checkboxes,#verify_form {
+	display: flex;
+	flex-direction: column;
+}
 #code::placeholder {
-	font-style: italic;
+	font-weight: bold;
 	text-align: center;
 }
 #copied {
@@ -271,11 +273,27 @@ th {
 	display: inline-grid;
 	grid-template-columns: auto auto;
 }
-#id {
-	text-transform: uppercase;
+#headers {
+	table-layout: fixed;
+	width: 100%;
+}
+#headers>tbody>tr>td:not(:first-child) {
+	border-left: var(--border-width) solid var(--color);
+}
+#headers>tbody>tr>td:not(:last-child) {
+	border-right: var(--border-width) solid var(--color);
+}
+#headers,#questions_table {
+	border-collapse: collapse;
 }
 #play>* {
 	margin: var(--big-space) 0;
+}
+:is(#questions_table,#solution_table)>tbody>tr>td,#questions_table,#solution_table,#questions_table>thead>tr>th {
+	border: var(--border-width) solid;
+}
+#size {
+	justify-self: left;
 }
 #start_here>:not(:first-child) {
 	margin-top: var(--medium-space);
@@ -283,17 +301,23 @@ th {
 #start_here>:not(:last-child) {
 	margin-bottom: var(--medium-space);
 }
-#questions_table {
-	border-collapse: collapse;
+#tabs {
+	border-color: var(--color);
+	border-left-style: solid;
+	border-right-style: solid;
+	border-top-style: solid;
+	border-width: var(--border-width);
+	margin: var(--small-space);
 }
-#verify_form {
-	align-items: center;
-	display: flex;
-	flex-direction: column;
+#tabs:has(nav>table>tbody>tr>td>details[open]) {
+	border-bottom-style: solid;
 }
 #verifiers {
 	margin-left: var(--small-space);
 	margin-right: var(--small-space);
+}
+#verify_form {
+	align-items: center;
 }
 @media(pointer: coarse) {
 	input:focus {
@@ -310,9 +334,6 @@ th {
 	:is(a,button:enabled,input,summary,.clickable):hover{
 		background-color: var(--color);
 		color: var(--background-color);
-	}
-	summary:hover {
-		border-bottom-style: solid;
 	}
 }
 @media(prefers-reduced-motion: no-preference) {

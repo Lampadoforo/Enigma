@@ -1,5 +1,11 @@
 'use strict';
 
+// Return the char corresponding to the codepoint of the first character of a string plus a value
+const charSum = (c, n) => String.fromCodePoint(c.codePointAt(0) + n);
+
+// Return the difference of the codepoints of the first character of two strings
+const charDiff = (a, b) => a.codePointAt(0) - b.codePointAt(0);
+
 // Create a new array of specified length; optionally populates it using a function taking the index as a parameter
 const newArray = (length, func) => Array.from({length}, func && ((_, i) => func(i)));
 
@@ -11,9 +17,23 @@ const mapInPlace = (array, func) => {
 	return array;
 };
 
+// Sort an array using a score function
+const sort = (array, func = x => x) => array.sort((a, b) => func(a) - func(b));
+
+// Convert the solution from a number (from 0 to 124) to a string (from '111' to '555')
+const convertSolution = solution => {
+	const digits = newArray(3);
+	for (let i = 2; i >= 0; i -= 1) {
+		digits[i] = solution % 5;
+		solution = (solution - digits[i]) / 5;
+		digits[i] += 1;
+	}
+	return digits.join('');
+};
+
 // A round of encryption; see An Enciphering Scheme Based on a Card Shuffle (2012) by Hoang, Morris, and Rogaway
-const swapOrNot = (x, keys, max) => {
-	const xp = keys[0] & max ^ x;
+const swapOrNot = (x, keys, mask) => {
+	const xp = keys[0] & mask ^ x;
 	let lx = keys[1] & (x > xp ? x : xp);
 	let result = 0n;
 	while (lx) {
@@ -149,9 +169,10 @@ const makeAnimationReset = element => {
 	};
 };
 
-const allCriteria = [];
-// Contains the criteria of the verifiers made of mutually exclusive criteria
+// The criteria of the easy verifier
 const easyCriteria = [];
+
+const allCriteria = [];
 
 class Criterion {
 	constructor(func, description) {
@@ -178,7 +199,8 @@ class Criterion {
 	}
 }
 
-const allVerifiers = [
+// THe verifiers made of mutually exclusive criteria
+const easyVerifiers = [
 	[
 		new Criterion((x, y, z) => x === 1, 'x = 1'),
 		new Criterion((x, y, z) => x > 1, 'x > 1'),
@@ -301,6 +323,10 @@ const allVerifiers = [
 		new Criterion((x, y, z) => (x + 1 === y || x === y + 1) + (y + 1 === z || y === z + 1) === 1, 'o x±1 = y o y±1 = z'),
 		new Criterion((x, y, z) => x + 1 === y && y + 1 === z || x === y + 1 && y === z + 1, 'x+2 = y+1 = z o x = y+1 = z+2'),
 	],
+];
+
+const allVerifiers = [
+	...easyVerifiers,
 	[
 		new Criterion((x, y, z) => x < 3, 'x < 3'),
 		new Criterion((x, y, z) => y < 3, 'y < 3'),
@@ -468,8 +494,7 @@ for (let i = 0; i < allVerifiers.length; i += 1) {
 		// For each criterion with lower id, indicates whether it can be in the same enigma as this
 		a.compatible = newArray(a.id, k => {
 			const b = allCriteria[k];
-			// If a and b are part of the same verifier, they are not compatible
-			return b.verifier !== i && [
+			return [
 				// If the intersection of accepted codes is empty, they are not compatible
 				a.accepted.length < b.accepted.length ? {
 					array: a.accepted,
@@ -489,20 +514,58 @@ for (let i = 0; i < allVerifiers.length; i += 1) {
 				},
 			].every(({array, criterion}) => array.some(c => criterion.accepts[c]));
 		});
-		if (i < 25) {
+		if (i < easyVerifiers.length) {
 			easyCriteria.push(a);
 		}
 	}
 }
 
+// For each verifier, contains an array of verifier indexes that cannot be used as decoys for that verifier
+const incompatibleDecoys = allVerifiers.map(() => []);
+
+for (let i = 0; i < allVerifiers.length; i += 1) {
+	for (let j = 0; j < i; j += 1) {
+		// If i and j contain an identical criterion
+		if (allVerifiers[i].some(a => allVerifiers[j].some(b => {
+			// Identical criteria are not compatible
+			if (a.accepted.length !== b.accepted.length || b.compatible[a]) {
+				return false;
+			}
+			let aa;
+			let bb;
+			if (a.accepted.length < a.rejected.length) {
+				aa = a.accepted;
+				bb = b.accepted;
+			} else {
+				aa = a.rejected;
+				bb = b.rejected;
+			}
+			for (let k = 0; k < aa.length; k += 1) {
+				if (aa[k] !== bb[k]) {
+					return false;
+				}
+			}
+			return true;
+		}))) {
+			incompatibleDecoys[i].push(j);
+			incompatibleDecoys[j].push(i);
+		}
+	}
+	// Each criterion is identical to itself
+	incompatibleDecoys[i].push(i);
+}
+
 const canonical = document.querySelector('link[rel="canonical"]').href;
-const headers = [...document.getElementById('headers').children];
+const headers = [...document.getElementsByTagName('details')];
 const dialog = document.getElementById('dialog');
 const errors = [...document.getElementsByClassName('error')];
 const errorNoCriterion = document.getElementById('error_no_criterion');
+const errorIncompatible = document.getElementById('error_incompatible');
+const errorNotSorted = document.getElementById('error_not_sorted');
 const errorNoSolution = document.getElementById('error_no_solution');
 const errorNoUniqueSolution = document.getElementById('error_no_unique_solution');
 const errorRedundand = document.getElementById('error_redundand');
+const errorNoVerifier = document.getElementById('error_no_verifier');
 const play = document.getElementById('play');
 const link = document.getElementById('link');
 const copied = document.getElementById('copied');
@@ -517,13 +580,11 @@ const showError = error => {
 	errors.forEach(hide);
 	show(error);
 	dialog.showModal();
+	return null;
 };
 
-// The criteria that make up the current enigma
-let criteria;
-
-// The solution of the current enigma
-let solution;
+// The current enigma
+let enigma;
 
 // The questions made for the current enigma
 let questions;
@@ -583,39 +644,39 @@ const appendToVerifiers = (letter, verifier) => {
 };
 
 // Set up variables and show the enigma
-const setup = (setupCriteria, setupSolution, setupId) => {
-	criteria = setupCriteria;
-	solution = newArray(3);
-	for (let i = 2, tmp = setupSolution; i >= 0; i -= 1) {
-		solution[i] = tmp % 5;
-		tmp = (tmp - solution[i]) / 5;
-		solution[i] += 1;
-	}
-	solution = solution.join('');
+const setup = (setupEnigma, doubles) => {
+	setupEnigma.solution = convertSolution(setupEnigma.solution);
+	// Set globals
+	enigma = setupEnigma;
 	questions = [];
 	lastCodeTd = null;
 	turns = 0;
 	colors.fill(0);
+	// Close all tabs
 	for (const header of headers) {
 		header.open = false;
 	}
-	link.href = `?e=${setupId}`;
-	link.innerText = setupId;
+	// Set link
+	link.href = `?e=${setupEnigma.id}`;
+	link.innerText = setupEnigma.id;
+	// Populate the verifiers <div> and the verifier <select>
 	verifiers.innerText = '';
 	document.forms.question_form.elements.verifier.innerText = '';
-	for (let i = 0; i < criteria.length; i += 1) {
-		const letter = String.fromCodePoint('A'.codePointAt(0) + i);
-		appendToVerifiers(letter, allVerifiers[criteria[i].verifier]);
+	for (let i = 0; i < setupEnigma.criteria.length; i += 1) {
+		const letter = charSum('A', i);
+		appendToVerifiers(letter, doubles ? doubles[i] : allVerifiers[setupEnigma.criteria[i].verifier]);
 		append(
 			document.forms.question_form.elements.verifier,
 			create('option', letter),
 		);
 	}
+	// Remove previous questions
 	document.forms.question_form.elements.code.value = '';
 	document.forms.question_form.elements.question_button.disabled = true;
 	hide(questionsTable);
 	questionsTBody.innerText = '';
 	color(solutionTable, 0);
+	// Clean solution table
 	for (const tr of solutionTBody.children) {
 		for (let i = 0; i < tr.children.length; i += 1) {
 			addClasses(tr.children[i], 'clickable');
@@ -623,6 +684,7 @@ const setup = (setupCriteria, setupSolution, setupId) => {
 		}
 	}
 	document.forms.verify_form.elements.verify_button.disabled = true;
+	// Hide victory or loss text
 	hide(document.forms.verify_form.elements.result);
 	show(play, 'flashes');
 	play.scrollIntoView({
@@ -631,7 +693,7 @@ const setup = (setupCriteria, setupSolution, setupId) => {
 };
 
 // The keys used to encrypt and decrypt the id
-const keys = newArray(6 * 16 * 8, () => [
+const keys = newArray(6 * 14 * 8, () => [
 	0n,
 	0n,
 ]);
@@ -660,67 +722,204 @@ const keys = newArray(6 * 16 * 8, () => [
 	}
 }
 
-// Import an enigma using its id; used in the import tab, when clicking on links, and when the 'e' url parameter is set
-const importEnigma = importId => {
-	const importCriteria = newArray(importId.length / 2);
-	{
-		// Decrypt using swap-or-not
-		const max = (1n << BigInt(4 * importId.length)) - 1n;
-		let x = BigInt(`0x${importId}`);
-		for (let i = keys.length - 1; i >= 0; i -= 1) {
-			x = swapOrNot(x, keys[i], max);
+// Make a mask to encrypt only the used bits of data
+const makeMask = (length, double) => {
+	if (double) {
+		let mask = 0n;
+		for (let i = 0; i < length; i += 1) {
+			mask = mask << 16n | 0xFF3Fn;
 		}
-		// Take each byte and use it as an index in the criteria array
-		for (let i = 0; i < importCriteria.length; i += 1) {
-			const c = Number(x & 0xFFn);
-			if (c >= allCriteria.length) {
-				showError(errorNoCriterion);
-				return;
+		return mask;
+	}
+	return (1n << BigInt(8 * length)) - 1n;
+};
+
+const encrypt = (data, length, double) => {
+	const mask = makeMask(length, double);
+	const rounds = 6 * length * (double ? 14 : 8);
+	for (let i = 0; i < rounds; i += 1) {
+		data = swapOrNot(data, keys[i], mask);
+	}
+	return data;
+};
+
+const decrypt = (data, length, double) => {
+	const mask = makeMask(length, double);
+	for (let i = 6 * length * (double ? 14 : 8) - 1; i >= 0; i -= 1) {
+		data = swapOrNot(data, keys[i], mask);
+	}
+	return data;
+};
+
+// Convert from base64 to a BigInt
+const fromBase64 = c => {
+	if (c >= 'A' && c <= 'Z') {
+		return BigInt(charDiff(c, 'A'));
+	}
+	if (c >= 'a' && c <= 'z') {
+		return BigInt(charDiff(c, 'a') + 26);
+	}
+	if (c >= '0' && c <= '9') {
+		return BigInt(charDiff(c, '0') + 52);
+	}
+	if (c === '-') {
+		return 62n;
+	}
+	return 63n;
+};
+
+// Extract single criteria from id
+const importSingle = importId => {
+	if (!/^(?:[\dA-F]{2}){2,8}$/u.test(importId)) {
+		return null;
+	}
+	const length = importId.length / 2;
+	let data = decrypt(BigInt(`0x${importId}`), length, false);
+	const criteria = newArray(length);
+	for (let i = length - 1; i >= 0; i -= 1) {
+		{
+			const criterion = Number(data & 0xFFn);
+			if (criterion >= allCriteria.length) {
+				return showError(errorNoCriterion);
 			}
-			importCriteria[i] = allCriteria[c];
-			x >>= 8n;
+			criteria[i] = allCriteria[criterion];
+		}
+		data >>= 8n;
+		if (i < length - 1 && criteria[i].verifier > criteria[i + 1].verifier) {
+			return showError(errorNotSorted);
 		}
 	}
-	importCriteria.sort((a, b) => a.id - b.id);
-	let importSolution = null;
+	return {
+		criteria,
+		indexes: criteria.map(c => c.index),
+	};
+};
+
+// Extract double criteria from decrypted data
+const extractEnigmaFromData = (data, length) => {
+	const result = {
+		criteria: newArray(length),
+		doubles: newArray(length),
+		indexes: newArray(length),
+	};
+	{
+		let tmp = data;
+		let old;
+		for (let i = length - 1; i >= 0; i -= 1) {
+			const decoy = Number(tmp & 0xFFn);
+			if (decoy >= allVerifiers.length) {
+				return showError(errorNoVerifier);
+			}
+			tmp >>= 8n;
+			{
+				const criterion = Number(tmp & 0xFFn);
+				if (criterion >= allCriteria.length) {
+					return showError(errorNoCriterion);
+				}
+				result.criteria[i] = allCriteria[criterion];
+			}
+			if (incompatibleDecoys[result.criteria[i].verifier].includes(decoy)) {
+				return showError(errorIncompatible);
+			}
+			tmp >>= 8n;
+			let current;
+			{
+				const v = allVerifiers[result.criteria[i].verifier];
+				const d = allVerifiers[decoy];
+				if (result.criteria[i].verifier < decoy) {
+					current = result.criteria[i].verifier;
+					result.doubles[i] = v.concat(d);
+					result.indexes[i] = result.criteria[i].index;
+				} else {
+					current = decoy;
+					result.doubles[i] = d.concat(v);
+					result.indexes[i] = d.length + result.criteria[i].index;
+				}
+			}
+			if (i < length - 1 && current > old) {
+				return showError(errorNotSorted);
+			}
+			old = current;
+		}
+	}
+	return result;
+};
+
+// Extract double criteria from id
+const importDouble = importId => {
+	if (!/^[G-V][\dA-F][\w-](?:[\dA-F]{2}[\w-]){1,7}$/u.test(importId)) {
+		return null;
+	}
+	let data = BigInt(charDiff(importId, 'G')) << 12n | BigInt(`0x${importId[1]}`) << 8n | fromBase64(importId[2]);
+	for (let i = 3; i < importId.length; i += 3) {
+		data = data << 16n | BigInt(`0x${importId[i]}${importId[i + 1]}`) << 8n | fromBase64(importId[i + 2]);
+	}
+	const length = importId.length / 3;
+	return extractEnigmaFromData(decrypt(data, length, true), length);
+};
+
+// Import an enigma using its id; used in the import tab, when clicking on links, and when the 'e' url parameter is set
+const importEnigma = importId => {
+	let setupEnigma;
+	let doubles;
+	if (importId[0] >= 'G' && importId[0] <= 'V') {
+		const result = importDouble(importId);
+		if (!result) {
+			return false;
+		}
+		setupEnigma = {
+			criteria: result.criteria,
+			indexes: result.indexes,
+		};
+		doubles = result.doubles;
+	} else {
+		setupEnigma = importSingle(importId);
+		if (!setupEnigma) {
+			return false;
+		}
+	}
+	setupEnigma.id = importId;
+	setupEnigma.solution = null;
 	// For each code accepted by the criterion that accepts fewer codes
-	for (const s of importCriteria[importCriteria.reduce((a, c, i) => c.accepted.length < a.value ? {
+	for (const s of setupEnigma.criteria[setupEnigma.criteria.reduce((a, c, i) => c.accepted.length < a.value ? {
 		index: i,
 		value: c.accepted.length,
 	} : a, {
 		index: -1,
 		value: 5 * 5 * 5,
 	}).index].accepted) {
-		if (importCriteria.every(c => c.accepts[s])) {
-			if (importSolution) {
-				showError(errorNoUniqueSolution);
-				return;
+		if (setupEnigma.criteria.every(c => c.accepts[s])) {
+			if (setupEnigma.solution !== null) {
+				return showError(errorNoUniqueSolution);
 			}
-			importSolution = s;
+			setupEnigma.solution = s;
 		}
 	}
-	if (!importSolution) {
-		showError(errorNoSolution);
-		return;
+	if (setupEnigma.solution === null) {
+		return showError(errorNoSolution);
 	}
 	// If a criterion does not reject at least a code that every other accept, it is redundand
-	if (!importCriteria.every(c => c.rejected.some(s => importCriteria.every(c2 => c === c2 || c2.accepts[s])))) {
-		showError(errorRedundand);
-		return;
+	{
+		const cs = setupEnigma.criteria;
+		if (!cs.every(c => c.rejected.some(s => cs.every(c2 => c === c2 || c2.accepts[s])))) {
+			return showError(errorRedundand);
+		}
 	}
-	setup(importCriteria, importSolution, importId);
+	setup(setupEnigma, doubles);
+	return true;
 };
 
 // Import an enigma, then add a new entry to the history of the browser as if a new page was visited
 const importEnigmaAndPush = importId => {
-	importEnigma(importId);
-	history.pushState({
-		enigma: importId,
-	}, '', link.href);
+	if (importEnigma(importId)) {
+		history.pushState({
+			enigma: importId,
+		}, '', link.href);
+	}
 };
 
 // Make clickable non-input elements not retain focus
-for (const focusable of document.querySelectorAll('summary,a,button')) {
+for (const focusable of document.querySelectorAll('summary,a,input[type="checkbox"],button,dialog')) {
 	focusable.onfocus = function() {
 		this.blur();
 	};
@@ -759,7 +958,7 @@ for (const focusable of document.querySelectorAll('summary,a,button')) {
 			example,
 			append(
 				create('fieldset'),
-				create('legend', String.fromCodePoint('A'.codePointAt(0) + i)),
+				create('legend', charSum('A', i)),
 				append(
 					addClasses(create('ol'), 'criteria'),
 					...allVerifiers[exampleVerifiers[i]].map(c => create('li', c.description)),
@@ -770,9 +969,9 @@ for (const focusable of document.querySelectorAll('summary,a,button')) {
 }
 
 // Make links to enigmas work without reloading the page
-for (const enigma of document.getElementsByClassName('enigma')) {
+for (const enigmaLink of document.getElementsByClassName('enigma')) {
 	onClick(
-		enigma,
+		enigmaLink,
 		function(event) {
 			event.preventDefault();
 			importEnigmaAndPush(this.innerText);
@@ -791,21 +990,92 @@ for (const label of document.getElementsByClassName('select')) {
 }
 
 {
-	// Generate the ID and call setup
-	const encryptAndSetup = (setupCriteria, setupSolution) => {
-		const max = (1n << BigInt(8 * setupCriteria.length)) - 1n;
-		// Assign a byte to each criterion using its id, then concatenate all of them in a big number
-		let x = setupCriteria.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
-		// Encrypt using swap-or-not
-		for (const key of keys) {
-			x = swapOrNot(x, key, max);
+	const base16 = newArray(16, i => i.toString(16).toUpperCase());
+	const base16m = newArray(16, i => (i + 16).toString(32).toUpperCase());
+	const base64 = newArray(64);
+
+	for (let i = 0; i < 26; i += 1) {
+		base64[i] = charSum('A', i);
+		base64[26 + i] = charSum('a', i);
+	}
+	for (let i = 0; i < 10; i += 1) {
+		base64[52 + i] = charSum('0', i);
+	}
+	base64[62] = '-';
+	base64[63] = '_';
+
+	// Sort the criteria, generate the ID and call setup
+	const afterGenSingle = setupEnigma => {
+		sort(setupEnigma.criteria, c => c.id);
+		setupEnigma.indexes = setupEnigma.criteria.map(c => c.index);
+		{
+			let data = setupEnigma.criteria.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
+			data = encrypt(data, setupEnigma.criteria.length, false);
+			setupEnigma.id = data.toString(16).toUpperCase().padStart(setupEnigma.criteria.length * 2, '0');
 		}
-		// Convert to hexadecimal
-		x = x.toString(16).toUpperCase().padStart(length * 2, '0');
-		setup(setupCriteria, setupSolution, x);
+		setup(setupEnigma);
+	};
+
+	// Add decoys, sort the criteria, generate the ID and call setup
+	const afterGenDouble = (setupEnigma, difficult) => {
+		{
+			const {length} = difficult ? allVerifiers : easyVerifiers;
+			mapInPlace(setupEnigma.criteria, criterion => {
+				const incs = incompatibleDecoys[criterion.verifier];
+				let decoy = Math.floor(Math.random() * (length - incs.length));
+				// Skip incompatible decoys
+				for (let i = 0; i < incs.length && decoy >= incs[i]; i += 1) {
+					decoy += 1;
+				}
+				return {
+					criterion,
+					decoy,
+				};
+			});
+		}
+		sort(setupEnigma.criteria, c => Math.min(c.criterion.verifier, c.decoy));
+		setupEnigma.indexes = newArray(setupEnigma.criteria.length);
+		const doubles = newArray(setupEnigma.criteria.length);
+		for (let i = 0; i < setupEnigma.criteria.length; i += 1) {
+			const {criterion, decoy} = setupEnigma.criteria[i];
+			if (criterion.verifier < decoy) {
+				setupEnigma.indexes[i] = criterion.index;
+				doubles[i] = allVerifiers[criterion.verifier].concat(allVerifiers[decoy]);
+			} else {
+				setupEnigma.indexes[i] = allVerifiers[decoy].length + criterion.index;
+				doubles[i] = allVerifiers[decoy].concat(allVerifiers[criterion.verifier]);
+			}
+		}
+		let data = 0n;
+		for (const criterion of setupEnigma.criteria) {
+			data = data << 16n | BigInt(criterion.criterion.id << 8 | criterion.decoy);
+		}
+		data = encrypt(data, setupEnigma.criteria.length, true);
+		mapInPlace(setupEnigma.criteria, c => c.criterion);
+		{
+			const idArray = newArray(setupEnigma.criteria.length);
+			for (let i = setupEnigma.criteria.length - 1; i; i -= 1) {
+				const n = Number(data & 0xFFFFn);
+				idArray[i] = `${base16[n >> 12]}${base16[n >> 8 & 0xF]}${base64[n & 0xFF]}`;
+				data >>= 16n;
+			}
+			data = Number(data);
+			idArray[0] = `${base16m[data >> 12]}${base16[data >> 8 & 0xF]}${base64[data & 0xFF]}`;
+			setupEnigma.id = idArray.join('');
+		}
+		setup(setupEnigma, doubles);
+	};
+
+	// Optionally add decoys; then sort the criteria, generate the ID and call setup
+	const afterGen = (setupEnigma, difficult, double) => {
+		if (double) {
+			afterGenDouble(setupEnigma, difficult);
+		} else {
+			afterGenSingle(setupEnigma);
+		}
 		// Add an entry in the history of the browser
 		history.pushState({
-			enigma: x,
+			enigma: setupEnigma.id,
 		}, '', link.href);
 	};
 
@@ -829,7 +1099,8 @@ for (const label of document.getElementsByClassName('select')) {
 	const post = (worker, message) => {
 		// Skip criteria that do not have enough accepted codes
 		for (; message.first + message.length - 1 < message.criteria.length; message.first += 1) {
-			if (message.criteria[message.first].accepted.length > message.length - 1) {
+			const first = message.criteria[message.first];
+			if (first.accepted.length > message.length - 1) {
 				worker.postMessage(message);
 				return message.first + 1;
 			}
@@ -852,46 +1123,41 @@ for (const label of document.getElementsByClassName('select')) {
 		// Switch button
 		hide(this.elements.generate_button);
 		show(this.elements.cancel_button);
+		const difficult = this.elements.difficult.checked;
+		const double = this.elements.double.checked;
 		// Shuffle criteria in random order
-		const cs = (this.elements.difficulty.selectedIndex ? allCriteria : easyCriteria).map(item => ({
+		const cs = mapInPlace(sort((difficult ? allCriteria : easyCriteria).map(item => ({
 			item,
 			score: Math.random(),
-		}));
-		mapInPlace(cs.sort((a, b) => a.score - b.score), c => c.item);
+		})), c => c.score), c => c.item);
 		const length = Number(this.elements.size.value);
-		// If length === 1, the generation is done in the main thread, without spawning workers
-		if (length === 1) {
-			const criterion = cs.find(c => c.accepted.length === 1);
-			encryptAndSetup([criterion], criterion.accepted[0]);
-		} else {
-			// The first criterion not yet assigned to a worker
-			let first = 0;
-			// If first === -1, all criteria has been assigned to workers
-			for (let i = 0; i < workers.length && first !== -1; i += 1) {
-				const worker = new Worker(url);
-				worker.onmessage = function(message) {
-					// If a worker sends a non-null message, it has generated an enigma
-					if (message.data) {
-						end();
-						encryptAndSetup(message.data.criteria, message.data.solution);
-					// If a worker sends a null message, no enigma could be found
-					} else if (first !== -1) {
-						// Give the worker another first criterion
-						first = post(this, {
-							criteria: cs,
-							first,
-							length,
-						});
-					}
-				};
-				// Give a first criterion to the worker to make it start
-				first = post(worker, {
-					criteria: cs,
-					first,
-					length,
-				});
-				workers[i] = worker;
-			}
+		// The first criterion not yet assigned to a worker
+		let first = 0;
+		// If first === -1, all criteria has been assigned to workers
+		for (let i = 0; i < workers.length && first !== -1; i += 1) {
+			const worker = new Worker(url);
+			worker.onmessage = function(message) {
+				// If a worker sends a non-null message, it has generated an enigma
+				if (message.data) {
+					end();
+					afterGen(message.data, difficult, double);
+				// If a worker sends a null message, no enigma could be found
+				} else if (first !== -1) {
+					// Give the worker another first criterion
+					first = post(this, {
+						criteria: cs,
+						first,
+						length,
+					});
+				}
+			};
+			// Give a first criterion to the worker to make it start
+			first = post(worker, {
+				criteria: cs,
+				first,
+				length,
+			});
+			workers[i] = worker;
 		}
 	};
 
@@ -902,26 +1168,9 @@ for (const label of document.getElementsByClassName('select')) {
 	);
 }
 
-// Make virtual keyboards use capital letters
-if ('autocapitalize' in document.forms.import_form.elements.id) {
-	document.forms.import_form.elements.id.autocapitalize = 'characters';
-}
-
-// Accept only hexadecimal digits as IDs
-document.forms.import_form.elements.id.onbeforeinput = event => {
-	if (event.data && /[^\dA-Fa-f]/u.test(event.data)) {
-		event.preventDefault();
-	}
-};
-
 // Enable import button if and only if ID is valid
 document.forms.import_form.elements.id.oninput = function() {
 	document.forms.import_form.elements.import_button.disabled = !this.validity.valid;
-};
-
-// Auto-capitalize ID
-document.forms.import_form.elements.id.onchange = function() {
-	this.value = this.value.toUpperCase();
 };
 
 // Import button imports the enigma with the ID
@@ -1016,7 +1265,7 @@ document.forms.question_form.onsubmit = function(event) {
 			tr.append(td);
 		}
 		const td = create('td');
-		if (criteria[this.elements.verifier.selectedIndex].accepts[code]) {
+		if (enigma.criteria[this.elements.verifier.selectedIndex].accepts[code]) {
 			addClasses(tr, 'flashes_green');
 			addClasses(lastCodeTd, 'flashes_green');
 			td.innerHTML = '<span class="green">✔</span>';
@@ -1074,14 +1323,14 @@ document.forms.verify_form.onsubmit = function(event) {
 		}
 	}
 	document.forms.question_form.elements.question_button.disabled = true;
+	for (let i = 0; i < enigma.indexes.length; i += 1) {
+		const correct = verifiers.children[i].children[1].children[enigma.indexes[i]];
+		addClasses(correct, 'correct');
+		// If correct was deleted, -1; if it is guess, 1; if it is neither, 0
+		const c = correct.classList.contains('deleted') ? -1 : correct.classList.contains('guess');
+		color(verifiers.children[i], c);
+	}
 	{
-		for (let i = 0; i < criteria.length; i += 1) {
-			const correct = verifiers.children[i].children[1].children[criteria[i].index];
-			addClasses(correct, 'correct');
-			// If correct was deleted, -1; if it is guess, 1; if it is neither, 0
-			const c = correct.classList.contains('deleted') ? -1 : correct.classList.contains('guess');
-			color(verifiers.children[i], c);
-		}
 		let guess = '';
 		for (let i = 0; i < 3; i += 1) {
 			for (let j = 0; j < solutionTBody.children.length; j += 1) {
@@ -1092,18 +1341,18 @@ document.forms.verify_form.onsubmit = function(event) {
 			}
 		}
 		this.elements.verify_button.disabled = true;
-		if (guess === solution) {
+		if (guess === enigma.solution) {
 			color(solutionTable, 1, true);
 			color(this.elements.result, 1, true);
 			this.elements.result.innerText = `Hai vinto in ${turns} turni e ${questions.length} interrogazioni!`;
 		} else {
 			color(solutionTable, -1, true);
 			color(this.elements.result, -1, true);
-			this.elements.result.innerHTML = `Hai perso! Il codice corretto è ${writeCode(solution)}.`;
+			this.elements.result.innerHTML = `Hai perso! Il codice corretto è ${writeCode(enigma.solution)}.`;
 		}
 	}
-	for (let i = 0; i < solution.length; i += 1) {
-		addClasses(solutionTBody.children[5 - solution[i]].children[i], 'correct');
+	for (let i = 0; i < enigma.solution.length; i += 1) {
+		addClasses(solutionTBody.children[5 - enigma.solution[i]].children[i], 'correct');
 	}
 	show(this.elements.result);
 	this.elements.result.scrollIntoView({
@@ -1119,17 +1368,16 @@ makeAnimationReset(document.forms.verify_form.elements.result);
 // Open the first tab
 headers[0].open = true;
 
-// If called with a valid e param, import its value as an enigma
+// If called with an e param, import its value as an enigma
 {
-	let e = new URLSearchParams(document.location.search).get('e');
-	if (e?.length && e.length <= 16 && !/[^\dA-Fa-f]/u.test(e) && !(e.length % 2)) {
-		importEnigma(e);
+	const e = new URLSearchParams(document.location.search).get('e');
+	if (e && importEnigma(e)) {
+		history.replaceState({
+			enigma: e,
+		}, '', link.href);
 	} else {
-		e = null;
+		history.replaceState({}, '', document.location.pathname);
 	}
-	history.replaceState({
-		enigma: e,
-	}, '', link.href);
 }
 
 // Navigate history without reloading
