@@ -598,13 +598,18 @@ let turns;
 // The state of the columns of the solution; the table is colored using the minimum; -1 is red, 0 is white, 1 is green
 const colors = newArray(3);
 
-// Disable the question button if the code is not valid or the same question has already been made
+// If the game has ended
+let gameOver;
+
+// Check if a verifier has already been questioned with a code
+const hasBeenQuestioned = (c, v) => questions.some(({code, verifier}) => code === c.value && verifier === v);
+
+// Disable the question button if the game is over or the code is not valid or the same question has already been made
 const disableQuestionButtonIfCannotQuestion = () => {
 	const {elements} = document.forms.question_form;
 	const c = elements.code;
 	const v = elements.verifier.value;
-	const b = elements.question_button;
-	b.disabled = !c.validity.valid || questions.some(({code, verifier}) => code === c.value && verifier === v);
+	elements.question_button.disabled = gameOver || !c.validity.valid || hasBeenQuestioned(c, v);
 };
 
 // Append a new verifier to verifiers
@@ -652,6 +657,7 @@ const setup = (setupEnigma, doubles) => {
 	lastCodeTd = null;
 	turns = 0;
 	colors.fill(0);
+	gameOver = false;
 	// Close all tabs
 	for (const header of headers) {
 		header.open = false;
@@ -1317,6 +1323,7 @@ document.forms.question_form.onsubmit = function(event) {
 // Check the solution and end the game
 document.forms.verify_form.onsubmit = function(event) {
 	event.preventDefault();
+	gameOver = true;
 	for (const verifier of verifiers.children) {
 		for (const criterion of verifier.children[1].children) {
 			criterion.classList.remove('clickable');

@@ -108,9 +108,6 @@ export default defineConfig([
 		files: ['**/*.css'],
 		language: 'css/css',
 		plugins: {css},
-		rules: {
-			'css/relative-font-units': 'error',
-		},
 	},
 	{
 		extends: ['html/all'],

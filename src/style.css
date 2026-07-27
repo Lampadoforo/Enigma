@@ -20,7 +20,9 @@ html {
 	--big-space: 1.5ch;
 	--border-width: 1px;
 	--duration: 1s;
+	--green: #080;
 	--medium-space: 1ch;
+	--red: #e00;
 	--small-space: .5ch;
 	background-color: var(--background-color);
 	color: var(--color);
@@ -34,6 +36,7 @@ html:has(#dialog[open]) {
 * {
 	margin: 0;
 	padding: 0;
+	-webkit-tap-highlight-color: transparent;
 }
 /* Remove @supports in January 2027 */
 @supports(backdrop-filter: blur(1px)) {
@@ -46,21 +49,27 @@ html:has(#dialog[open]) {
 		background-color: #8888;
 	}
 }
+@supports selector(::selection) {
+	::selection {
+		background-color: #08f8;
+	}
+}
 a {
 	color: var(--color);
 	text-decoration-style: dotted;
 }
 button {
-	display: inline-flex;
-	gap: var(--small-space);
 	padding: var(--small-space);
 }
 button,input {
 	appearance: none;
 	background-color: var(--background-color);
-}
-button,input {
 	border: var(--border-width) solid var(--color);
+}
+button,label:not([for]) {
+	align-items: center;
+	display: inline-flex;
+	gap: var(--small-space);
 }
 button:enabled,details,input[type="checkbox"],label,summary,select,.clickable {
 	cursor: pointer;
@@ -96,15 +105,19 @@ input,.enigma {
 	font-family: monospace;
 }
 input:invalid {
-	border-color: red;
+	border-color: var(--red);
 }
-input[type="checkbox"]:checked {
-	background-color: green;
+input[type="checkbox"] {
+	align-items: center;
+	display: flex;
+	justify-content: center;
 }
-input[type="checkbox"]::before {
+input[type="checkbox"]::after {
+	color: var(--green);
 	content: "✔";
+	font-size: xxx-large;
 }
-input[type="checkbox"]:not(:checked)::before {
+input[type="checkbox"]:not(:checked)::after {
 	visibility: hidden;
 }
 label[for] {
@@ -116,7 +129,8 @@ label[for] {
 		user-select: none;
 	}
 }
-@supports(-webkit-user-select: none) {
+/*@supports(-webkit-user-select: none) {*/
+@supports not (user-select: none) {
 	label,summary,.verifiers,#solution_tbody {
 		-webkit-user-select: none;
 	}
@@ -128,7 +142,7 @@ li {
 	white-space: nowrap;
 }
 li.deleted::after {
-	background-color: red;
+	background-color: var(--red);
 	content: "";
 	height: 10%;
 	left: 0;
@@ -145,6 +159,9 @@ ol {
 p {
 	text-align: justify;
 }
+select {
+	text-align: center;
+}
 summary {
 	border-bottom: var(--border-width) solid transparent;
 	padding: var(--small-space) 0;
@@ -158,8 +175,8 @@ table {
 }
 td.deleted::after {
 	background-image:
-		linear-gradient(to bottom right, transparent 47%, red 47% 53%, transparent 53%),
-		linear-gradient(to top right, transparent 47%, red 47% 53%, transparent 53%);
+		linear-gradient(to bottom right, transparent 47%, var(--red) 47% 53%, transparent 53%),
+		linear-gradient(to top right, transparent 47%, var(--red) 47% 53%, transparent 53%);
 	content: "";
 	height: 100%;
 	left: 0;
@@ -172,24 +189,23 @@ th {
 }
 var {
 	font-style: normal;
-	font-weight: bold;
 }
 .correct {
-	background-color: green;
+	background-color: var(--green);
 }
 .criteria {
 	list-style-type: none;
 }
 .criteria>li,#solution_tbody>tr>td {
 	border-style: solid;
-	border-width: 0.1lh;
+	border-width: var(--border-width);
 	position: relative;
 }
 :is(.criteria>li,#solution_tbody>tr>td):not(.guess) {
 	border-color: transparent;
 }
 .error,.red {
-	color: red;
+	color: var(--red);
 }
 .flex_row {
 	align-items: center;
@@ -198,10 +214,10 @@ var {
 	justify-content: center;
 }
 .green {
-	color: green;
+	color: var(--green);
 }
 .guess {
-	border-color: green;
+	border-color: var(--green);
 }
 .hidden {
 	display: none;
@@ -274,6 +290,7 @@ var {
 	grid-template-columns: auto auto;
 }
 #headers {
+	border-collapse: collapse;
 	table-layout: fixed;
 	width: 100%;
 }
@@ -283,14 +300,15 @@ var {
 #headers>tbody>tr>td:not(:last-child) {
 	border-right: var(--border-width) solid var(--color);
 }
-#headers,#questions_table {
+#questions_table {
 	border-collapse: collapse;
 }
 #play>* {
 	margin: var(--big-space) 0;
 }
 :is(#questions_table,#solution_table)>tbody>tr>td,#questions_table,#solution_table,#questions_table>thead>tr>th {
-	border: var(--border-width) solid;
+	border-style: solid;
+	border-width: var(--border-width);
 }
 #size {
 	justify-self: left;
@@ -320,16 +338,26 @@ var {
 	align-items: center;
 }
 @media(pointer: coarse) {
-	input:focus {
-		outline: var(--border-width) dashed var(--color);
-	}
 	:not(input):focus {
 		outline: none;
+	}
+	a:active {
+		text-decoration-style: solid;
+	}
+	:is(a,button:enabled,input,summary,.clickable):active {
+		background-color: var(--color);
+		color: var(--background-color);
+	}
+	input:focus {
+		outline: var(--border-width) solid var(--color);
 	}
 }
 @media(pointer: fine) {
 	:focus {
-		outline: var(--border-width) dashed var(--color);
+		outline: var(--border-width) solid var(--color);
+	}
+	a:hover {
+		text-decoration-style: solid;
 	}
 	:is(a,button:enabled,input,summary,.clickable):hover{
 		background-color: var(--color);
@@ -367,11 +395,11 @@ var {
 }
 @keyframes flash_green {
 	from {
-		background-color: green;
+		background-color: var(--green);
 	}
 }
 @keyframes flash_red {
 	from {
-		background-color: red;
+		background-color: var(--red);
 	}
 }
