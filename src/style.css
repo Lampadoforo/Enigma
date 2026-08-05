@@ -15,15 +15,13 @@ html {
 	--border-width: 1px;
 	--duration: 1s;
 	--green: #080;
-	--font-family: 'Times New Roman', serif;
 	--medium-space: 1ch;
 	--red: #e00;
 	--small-space: .5ch;
 	background-color: var(--background-color);
 	color: var(--color);
 	color-scheme: dark light;
-	font-family: var(--font-family);
-	font-size: 1.5em;
+	font-size: 1.2em;
 	min-height: 100%;
 	text-align: center;
 }
@@ -31,6 +29,7 @@ html:has(#dialog[open]) {
 	overflow: hidden;
 }
 * {
+	line-height: 1.5;
 	margin: 0;
 	padding: 0;
 	-webkit-tap-highlight-color: #0000;
@@ -68,14 +67,15 @@ button {
 	appearance: none;
 	background-color: var(--background-color);
 	border: var(--border-width) solid var(--color);
-	font-family: var(--font-family);
-	font-size: 1em;
 	padding: var(--small-space);
 }
 button, label:not([for]) {
 	align-items: center;
 	display: flex;
 	gap: var(--small-space);
+}
+button,input,select {
+	font: inherit;
 }
 button:enabled, details, label, summary, select, .clickable {
 	cursor: pointer;
@@ -154,7 +154,6 @@ input[type='text'] {
 	background-color: var(--background-color);
 	color: var(--color);
 	font-family: monospace;
-	font-size: 1em;
 	text-align: center;
 }
 input[type='text']:invalid {
@@ -186,11 +185,9 @@ ol {
 	margin-left: 3ch;
 }
 * + p, #example {
-	margin-top: var(--medium-space);
+	margin-top: var(--small-space);
 }
 select {
-	font-family: var(--font-family);
-	font-size: 1em;
 	text-align: center;
 }
 summary {
@@ -274,7 +271,7 @@ ul {
 }
 .tab {
 	border-bottom: solid var(--border-width);
-	padding: var(--medium-space);
+	padding: var(--small-space);
 }
 .verifiers {
 	display: flex;
@@ -311,7 +308,7 @@ ul {
 	flex-direction: column;
 }
 #code::placeholder {
-	font-family: var(--font-family);
+	font-family: initial;
 	font-style: italic;
 	text-align: center;
 }
@@ -355,17 +352,6 @@ ul {
 #size {
 	justify-self: left;
 }
-/*#tabs {
-	border-color: var(--color);
-	border-left-style: solid;
-	border-right-style: solid;
-	border-top-style: solid;
-	border-width: var(--border-width);
-	margin: var(--small-space);
-}
-#tabs:has(nav > details[open]) {
-	border-bottom-style: solid;
-}*/
 #verifiers {
 	margin-left: var(--small-space);
 	margin-right: var(--small-space);
