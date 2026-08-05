@@ -1,3 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
+	<style>
+		svg {
+			color-scheme: dark light;
+		}
+	</style>
 	<path d="M1,12l1,-6h10l1,6ZM7,1v8m-2,-2l2,2 2,-2" fill="none" stroke="currentColor"/>
 </svg>

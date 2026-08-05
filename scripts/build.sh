@@ -1,26 +1,40 @@
 #!/bin/sh
 set -eu
+
+swc() {
+	npx swc -f "$1" --config-file config/swc.json -q
+}
+
 npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
+
 dir=_site/$(git branch --show-current)
 mkdir -p "${dir}/tmp/"
-css=$(sed 's|/\*.*\*/||g' src/style.css | tr -d '\t\n' | sed -f scripts/css.sed)
+
+css=$(tr -d '\t\n' < src/style.css | sed 's/\/\*(.*?)\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g;s/ }/}/g;s/img/svg/g')
 echo "<style>${css}</style>" > "${dir}/tmp/style.css"
-favicon=
-for c in \  \" \# \< \> \{ \}; do
-	favicon="${favicon}s/${c}/%$(printf %X \'"${c}")/g;"
-done
-favicon=$(npx svgo src/favicon.svg -o - --multipass | sed "${favicon}")
-echo "<link type=\"image/svg+xml\" href=\"data:image/svg+xml,${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
+
+favicon=$(npx svgo -o - --config config/svgo.mjs src/favicon.svg | sed "s/&quot;/'/g" | base64 -w 0)
+mime=image/svg+xml
+echo "<link type=\"${mime}\" href=\"data:${mime};base64,${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
+
 for file in src/icons/*; do
-	npx svgo "${file}" -o - --multipass > "${dir}/tmp/${file##*/}"
+	npx svgo -o - --config config/svgo.mjs "${file}" > "${dir}/tmp/${file##*/}"
 done
-worker=$(sed -n '/functions/q;p' src/worker.js | npx swc -f src/worker.js --config-file config/swc.json -q)
+
+cmds=/test.css/d\;
+workers=
+for file in src/workers/*; do
+	worker="${file##*/}"
+	cmds="${cmds}/${worker}/d;"
+	worker="const ${worker%.*}String=\"'use strict';$(sed -n '/functions/q;p' "${file}" | swc "${file}")\";"
+	workers="${workers}${worker}"
+done
 js=$({
-	echo "const workerString=\"'use strict';${worker}\";"
+	echo "${workers}"
 	cat src/main.js
-} | npx swc -f src/main.js --config-file config/swc.json -q)
+} | swc src/main.js)
 echo "<script>//<![CDATA['use strict';{${js}}//]]></script>" > "${dir}/tmp/main.js"
-cmds=/worker.js/d\;
+
 for file in "${dir}"/tmp/*; do
 	cmds="${cmds}/${file##*/}/{
 		r ${file}
@@ -28,5 +42,7 @@ for file in "${dir}"/tmp/*; do
 	};"
 done
 sed "${cmds}" src/main.xhtml | tr -d '\t\n' | sed 's/<!\[CDATA\[/&\n/' > "${dir}/index.xhtml"
+
 rm -r "${dir}/tmp"
+
 npx vnu-jar --Werror "${dir}/index.xhtml"

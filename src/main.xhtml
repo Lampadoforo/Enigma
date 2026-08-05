@@ -6,12 +6,13 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1"/>
 		<title>Enigma</title>
 		<link href="style.css" rel="stylesheet"/>
+		<link href="test.css" rel="stylesheet"/>
 		<link href="https://lampadoforo.github.io/Enigma/" rel="canonical"/>
 		<link type="image/svg+xml" href="favicon.svg" rel="icon"/>
 		<meta name="description" content="Enigma è un’implementazione web del gioco da tavolo di deduzione logica Turing Machine."/>
 		<meta property="og:title" content="Enigma"/>
 		<meta property="og:type" content="website"/>
-		<meta property="og:image" content="https://lampadoforo.github.io/Enigma/og.png"/>
+		<meta property="og:image" content="https://lampadoforo.github.io/Enigma/logo.png"/>
 		<meta property="og:image:width" content="1200"/>
 		<meta property="og:image:height" content="630"/>
 		<meta property="og:url" content="https://lampadoforo.github.io/Enigma/"/>
@@ -33,30 +34,19 @@
 				</button>
 			</div>
 		</dialog>
-		<div id="tabs">
-			<nav>
-				<table id="headers">
-					<tbody>
-						<tr>
-							<td>
-								<details open="" tabindex="-1">
-									<summary tabindex="-1">Per iniziare</summary>
-								</details>
-							</td>
-							<td>
-								<details tabindex="-1">
-									<summary tabindex="-1">Genera</summary>
-								</details>
-							</td>
-							<td>
-								<details tabindex="-1">
-									<summary tabindex="-1">Importa</summary>
-								</details>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</nav>
+		<nav>
+			<details open="" tabindex="-1">
+				<summary tabindex="-1">Per iniziare</summary>
+			</details>
+			<details tabindex="-1">
+				<summary tabindex="-1">Genera</summary>
+			</details>
+
+			<details tabindex="-1">
+				<summary tabindex="-1">Importa</summary>
+			</details>
+		</nav>
+		<main>
 			<div id="start_here" class="tab">
 				<p><dfn>Enigma</dfn> è un’implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info" tabindex="-1">Turing Machine</a>. Turing Machine è stato ideato da Fabien Gridel e Yoann Levet ed è pubblicato da <a href="https://www.scorpionmasque.com" tabindex="-1">Scorpion Masqué</a>. <a href="https://github.com/Lampadoforo/Enigma/" tabindex="-1">Il codice sorgente di Enigma è disponibile su GitHub</a>.</p>
 				<p>Lo scopo del gioco è indovinare l’<strong>unico</strong> codice di tre cifre da 1 a 5, indicate con <var class="x">x</var>, <var class="y">y</var> e <var class="z">z</var>, <dfn>accettato</dfn> da tutti i <dfn>verificatori</dfn>.</p>
@@ -69,12 +59,16 @@
 				<p>Dopo aver elimanato tutti i valori tranne uno per ogni cifra della soluzione, è possibile <dfn>verificarla</dfn>. Se è corretta, si vince la partita; in caso contrario, la si perde. Il punteggio finale è dato dal numero di turni impiegati e, in caso di parità, dal numero di interrogazioni. Il punteggio migliore è quello più basso.</p>
 				<p>Ci sono due modificatori di difficoltà.</p>
 				<dl>
-					<dt>Usa anche verificatori difficili</dt>
-					<dd>Per alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma il criterio usato dal verificatore è soltanto uno.</dd>
-					<dt>Usa verificatori doppi</dt>
-					<dd>La lista di criteri di ogni verificatore è più lunga, ma il criterio usato dal verificatore è soltanto uno.</dd>
+					<div>
+						<dt>Usa anche verificatori difficili</dt>
+						<dd>per alcuni verificatori, lo stesso codice può essere accettato da più criteri.</dd>
+					</div>
+					<div>
+						<dt>Usa verificatori doppi</dt>
+						<dd>la lista di criteri di ogni verificatore è più lunga.</dd>
+					</div>
 				</dl>
-				<p>Segue una lista di enigmi. I primi sedici sono di difficoltà facile; gli ultimi quattro sono di difficoltà classica. Il primo è quello usato sopra come esempio.</p>
+				<p>Segue una lista di enigmi. I primi sedici non usano modificatori di difficoltà; gli ultimi quattro usano anche verificatori difficili. Il primo è quello usato sopra come esempio.</p>
 				<ol id="enigmas">
 					<li>
 						<a class="enigma" href="?e=768C90FA" tabindex="-1">768C90FA</a>
@@ -101,7 +95,7 @@
 						<a class="enigma" href="?e=C4A0291104" tabindex="-1">C4A0291104</a>
 					</li>
 					<li>
-						<a class="enigma" href="?e=16D00CA75" tabindex="-1">16D00CA75</a>
+						<a class="enigma" href="?e=016D00CA75" tabindex="-1">016D00CA75</a>
 					</li>
 					<li>
 						<a class="enigma" href="?e=E037C268AF" tabindex="-1">E037C268AF</a>
@@ -116,7 +110,7 @@
 						<a class="enigma" href="?e=49B5EA74" tabindex="-1">49B5EA74</a>
 					</li>
 					<li>
-						<a class="enigma" href="?e=4502499" tabindex="-1">4502499</a>
+						<a class="enigma" href="?e=04502499" tabindex="-1">04502499</a>
 					</li>
 					<li>
 						<a class="enigma" href="?e=3F38EA42C0" tabindex="-1">3F38EA42C0</a>
@@ -125,7 +119,7 @@
 						<a class="enigma" href="?e=ECA39822096" tabindex="-1">ECA39822096</a>
 					</li>
 					<li>
-						<a class="enigma" href="?e=74EBA3E" tabindex="-1">74EBA3E</a>
+						<a class="enigma" href="?e=074EBA3E" tabindex="-1">074EBA3E</a>
 					</li>
 					<li>
 						<a class="enigma" href="?e=684D8872" tabindex="-1">684D8872</a>
@@ -153,11 +147,11 @@
 					</select>
 					<div id="checkboxes">
 						<label title="Per alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma il criterio usato dal verificatore è soltanto uno">
-							<input id="difficult" type="checkbox" checked="" tabindex="-1"/>
+							<input id="difficult" type="checkbox" checked="" inert="" tabindex="-1"/>
 							Usa anche verificatori difficili
 						</label>
 						<label title="La lista di criteri di ogni verificatore è più lunga, ma il criterio usato dal verificatore è soltanto uno">
-							<input id="double" type="checkbox" tabindex="-1"/>
+							<input id="double" type="checkbox" inert="" tabindex="-1"/>
 							Usa verificatori doppi
 						</label>
 					</div>
@@ -174,129 +168,129 @@
 			<div class="hidden tab">
 				<form id="import_form">
 					<label for="id">ID</label>
-					<input id="id" type="text" maxlength="24" minlength="2" pattern="(?:[\dA-F]{2}){2,8}|[G-V][\dA-F][\w\-](?:[\dA-F]{2}[\w\-]){1,7}" required="" size="24"/>
+					<input id="id" type="text" maxlength="24" minlength="2" pattern="(?:[\dA-F]{2}){2,8}|[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}" required="" size="24"/>
 					<button id="import_button" type="submit" disabled="" tabindex="-1">
 						<img alt="" src="icons/import.svg"/>
 						Importa
 					</button>
 				</form>
 			</div>
-		</div>
-		<div id="play" class="hidden">
-			<div class="flex_row">
-				<a id="link" class="enigma"></a>
-				<button id="copy" type="button" tabindex="-1">
-					<img alt="" src="icons/copy.svg"/>
-					Copia
-					<span id="copied" class="hidden">Copiato!</span>
-				</button>
-				<button id="share" type="button" class="hidden" tabindex="-1">
-					<img alt="" src="icons/share.svg"/>
-					Condividi
-				</button>
-			</div>
-			<div id="verifiers" class="verifiers"></div>
-			<div>
-				<form id="question_form">
-					<label for="code">Codice</label>
-					<input id="code" type="text" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
-					<label class="select" for="verifier">Verificatore</label>
-					<select id="verifier"></select>
-					<button id="question_button" type="submit" tabindex="-1">
-						<img alt="" src="icons/question.svg"/>
-						Interroga
+			<div id="play" class="hidden">
+				<div class="flex_row">
+					<a id="link" class="enigma"></a>
+					<button id="copy" type="button" tabindex="-1">
+						<img alt="" src="icons/copy.svg"/>
+						Copia
+						<span id="copied" class="hidden">Copiato!</span>
 					</button>
-				</form>
-			</div>
-			<div>
-				<table id="questions_table">
-					<thead>
-						<tr>
-							<th>Codice</th>
-							<th>Verificatore</th>
-							<th>Esito</th>
-						</tr>
-					</thead>
-					<tbody id="questions_tbody"></tbody>
-				</table>
-			</div>
-			<div>
-				<table id="solution_table">
-					<thead>
-						<tr>
-							<th colspan="3">Soluzione</th>
-						</tr>
-					</thead>
-					<tbody id="solution_tbody">
-						<tr>
-							<td>
-								<span class="x">5</span>
-							</td>
-							<td>
-								<span class="y">5</span>
-							</td>
-							<td>
-								<span class="z">5</span>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<span class="x">4</span>
-							</td>
-							<td>
-								<span class="y">4</span>
-							</td>
-							<td>
-								<span class="z">4</span>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<span class="x">3</span>
-							</td>
-							<td>
-								<span class="y">3</span>
-							</td>
-							<td>
-								<span class="z">3</span>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<span class="x">2</span>
-							</td>
-							<td>
-								<span class="y">2</span>
-							</td>
-							<td>
-								<span class="z">2</span>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<span class="x">1</span>
-							</td>
-							<td>
-								<span class="y">1</span>
-							</td>
-							<td>
-								<span class="z">1</span>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div>
-				<form id="verify_form">
-					<button id="verify_button" type="submit" tabindex="-1">
-						<img alt="" src="icons/verify.svg"/>
-						Verifica
+					<button id="share" type="button" class="hidden" tabindex="-1">
+						<img alt="" src="icons/share.svg"/>
+						Condividi
 					</button>
-					<output id="result" class="hidden"></output>
-				</form>
+				</div>
+				<div id="verifiers" class="verifiers"></div>
+				<div>
+					<form id="question_form">
+						<label for="code">Codice</label>
+						<input id="code" type="text" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
+						<label class="select" for="verifier">Verificatore</label>
+						<select id="verifier"></select>
+						<button id="question_button" type="submit" tabindex="-1">
+							<img alt="" src="icons/question.svg"/>
+							Interroga
+						</button>
+					</form>
+				</div>
+				<div>
+					<table id="questions_table">
+						<thead>
+							<tr>
+								<th>Codice</th>
+								<th>Verificatore</th>
+								<th>Esito</th>
+							</tr>
+						</thead>
+						<tbody id="questions_tbody"></tbody>
+					</table>
+				</div>
+				<div>
+					<table id="solution_table">
+						<thead>
+							<tr>
+								<th colspan="3">Soluzione</th>
+							</tr>
+						</thead>
+						<tbody id="solution_tbody">
+							<tr>
+								<td>
+									<span class="x">5</span>
+								</td>
+								<td>
+									<span class="y">5</span>
+								</td>
+								<td>
+									<span class="z">5</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="x">4</span>
+								</td>
+								<td>
+									<span class="y">4</span>
+								</td>
+								<td>
+									<span class="z">4</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="x">3</span>
+								</td>
+								<td>
+									<span class="y">3</span>
+								</td>
+								<td>
+									<span class="z">3</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="x">2</span>
+								</td>
+								<td>
+									<span class="y">2</span>
+								</td>
+								<td>
+									<span class="z">2</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="x">1</span>
+								</td>
+								<td>
+									<span class="y">1</span>
+								</td>
+								<td>
+									<span class="z">1</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div>
+					<form id="verify_form">
+						<button id="verify_button" type="submit" tabindex="-1">
+							<img alt="" src="icons/verify.svg"/>
+							Verifica
+						</button>
+						<output id="result" class="hidden"></output>
+					</form>
+				</div>
 			</div>
-		</div>
-		<script src="worker.js"></script>
+		</main>
+		<script src="workers/generate.js"></script>
 		<script src="main.js"></script>
 	</body>
 </html>

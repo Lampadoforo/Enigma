@@ -89,5 +89,5 @@ const functions = [
 ];
 
 // Used to make the worker work locally
-/* exported workerString */
-const workerString = `'use strict';\n${functions.map(f => `const ${f.name}=${f};\n`).join('')}onmessage=${onmessage}`;
+/* exported generateString */
+const generateString = `'use strict';\n${functions.map(f => `const ${f.name}=${f};\n`).join('')}onmessage=${onmessage}`;

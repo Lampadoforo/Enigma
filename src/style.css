@@ -1,19 +1,13 @@
 @media(prefers-color-scheme: dark) {
 	html {
-		--background-color: black;
-		--color: white;
-	}
-	button:is(:not(:enabled),:not(:hover))>img {
-		filter: invert(1);
+		--background-color: #000;
+		--color: #fff;
 	}
 }
 @media(prefers-color-scheme: light) {
 	html {
-		--background-color: white;
-		--color: black;
-	}
-	button:enabled:hover>img {
-		filter: invert(1);
+		--background-color: #fff;
+		--color: #000;
 	}
 }
 html {
@@ -21,12 +15,15 @@ html {
 	--border-width: 1px;
 	--duration: 1s;
 	--green: #080;
+	--font-family: 'Times New Roman', serif;
 	--medium-space: 1ch;
 	--red: #e00;
 	--small-space: .5ch;
 	background-color: var(--background-color);
 	color: var(--color);
 	color-scheme: dark light;
+	font-family: var(--font-family);
+	font-size: 1.5em;
 	min-height: 100%;
 	text-align: center;
 }
@@ -36,7 +33,7 @@ html:has(#dialog[open]) {
 * {
 	margin: 0;
 	padding: 0;
-	-webkit-tap-highlight-color: transparent;
+	-webkit-tap-highlight-color: #0000;
 }
 /* Remove @supports in January 2027 */
 @supports(backdrop-filter: blur(1px)) {
@@ -51,40 +48,78 @@ html:has(#dialog[open]) {
 }
 @supports selector(::selection) {
 	::selection {
-		background-color: #08f8;
+		background-color: #5f5fff;
 	}
 }
 a {
 	color: var(--color);
-	text-decoration-style: dotted;
+}
+@supports(user-select: all) {
+	a {
+		user-select: all;
+	}
+}
+@supports not (user-select: all) {
+	a {
+		-webkit-user-select: all;
+	}
 }
 button {
-	padding: var(--small-space);
-}
-button,input {
 	appearance: none;
 	background-color: var(--background-color);
 	border: var(--border-width) solid var(--color);
+	font-family: var(--font-family);
+	font-size: 1em;
+	padding: var(--small-space);
 }
-button,label:not([for]) {
+button, label:not([for]) {
 	align-items: center;
-	display: inline-flex;
+	display: flex;
 	gap: var(--small-space);
 }
-button:enabled,details,input[type="checkbox"],label,summary,select,.clickable {
+button:enabled, details, label, summary, select, .clickable {
 	cursor: pointer;
 }
-dd,#enigmas {
-	margin-left: 3ch;
+button:enabled {
+	color: var(--color);
+}
+button:not(:enabled) {
+	color: #888;
+}
+@supports(user-select: none) {
+	button, label, select, summary, .clickable {
+		user-select: none;
+	}
+}
+@supports not (user-select: none) {
+	button, label, select, summary, .clickable {
+		-webkit-user-select: none;
+	}
+}
+dd {
+	display: inline;
 }
 details {
 	flex: 1;
 }
-dl,ol {
-	text-align: left;
+dl, ol, p {
+	text-align: justify;
 }
-dt {
-	font-weight: bold;
+@supports(display: inline list-item) {
+	dt {
+		display: inline list-item;
+	}
+}
+@supports not (display: inline list-item) {
+	dt {
+		display: inline;
+	}
+	dt::before {
+		content: '• ';
+	}
+}
+dt::after {
+	content: ':';
 }
 fieldset {
 	border: var(--border-width) solid;
@@ -94,46 +129,40 @@ fieldset {
 form {
 	row-gap: var(--medium-space);
 }
-img,input[type="checkbox"] {
+input {
+	appearance: none;
+	border: var(--border-width) solid var(--color);
+}
+input[type='checkbox'], svg {
 	height: 1lh;
 	width: 1lh;
 }
-input {
-	text-align: center;
-}
-input,.enigma {
-	font-family: monospace;
-}
-input:invalid {
-	border-color: var(--red);
-}
-input[type="checkbox"] {
+input[type='checkbox'] {
 	align-items: center;
 	display: flex;
 	justify-content: center;
 }
-input[type="checkbox"]::after {
+input[type='checkbox']::after {
 	color: var(--green);
-	content: "✔";
-	font-size: xxx-large;
+	content: '✔';
+	scale: 3;
 }
-input[type="checkbox"]:not(:checked)::after {
+input[type='checkbox']:not(:checked)::after {
 	visibility: hidden;
+}
+input[type='text'] {
+	background-color: var(--background-color);
+	color: var(--color);
+	font-family: monospace;
+	font-size: 1em;
+	text-align: center;
+}
+input[type='text']:invalid {
+	border-color: var(--red);
 }
 label[for] {
 	padding-right: var(--small-space);
 	justify-self: right;
-}
-@supports(user-select: none) {
-	label,summary,.verifiers,#solution_tbody {
-		user-select: none;
-	}
-}
-/*@supports(-webkit-user-select: none) {*/
-@supports not (user-select: none) {
-	label,summary,.verifiers,#solution_tbody {
-		-webkit-user-select: none;
-	}
 }
 legend {
 	margin: auto;
@@ -143,7 +172,7 @@ li {
 }
 li.deleted::after {
 	background-color: var(--red);
-	content: "";
+	content: '';
 	height: 10%;
 	left: 0;
 	position: absolute;
@@ -154,30 +183,44 @@ nav {
 	display: flex;
 }
 ol {
-	color: var(--color);
+	margin-left: 3ch;
 }
-p {
-	text-align: justify;
+* + p, #example {
+	margin-top: var(--medium-space);
 }
 select {
+	font-family: var(--font-family);
+	font-size: 1em;
 	text-align: center;
 }
 summary {
-	border-bottom: var(--border-width) solid transparent;
+	border-bottom: var(--border-width) solid;
 	padding: var(--small-space) 0;
+	white-space: nowrap;
 }
-details:not([open])>summary {
+details:nth-child(2) > summary {
+	border-left: var(--border-width) solid var(--color);
+	border-right: var(--border-width) solid var(--color);
+}
+details[open] > summary {
+	border-bottom-color: #0000;
+}
+details:not([open]) > summary {
 	border-bottom-color: var(--color);
 }
 table {
+	border: var(--border-width) solid;
 	margin-left: auto;
 	margin-right: auto;
 }
+td, #questions_table > thead > tr > th {
+	border: var(--border-width) solid;
+}
 td.deleted::after {
 	background-image:
-		linear-gradient(to bottom right, transparent 47%, var(--red) 47% 53%, transparent 53%),
-		linear-gradient(to top right, transparent 47%, var(--red) 47% 53%, transparent 53%);
-	content: "";
+		linear-gradient(to bottom right, #0000 47%, var(--red) 47% 53%, #0000 53%),
+		linear-gradient(to top right, #0000 47%, var(--red) 47% 53%, #0000 53%);
+	content: '';
 	height: 100%;
 	left: 0;
 	position: absolute;
@@ -187,24 +230,25 @@ td.deleted::after {
 th {
 	padding: var(--small-space);
 }
-var {
-	font-style: normal;
+ul {
+	text-align: left;
 }
 .correct {
 	background-color: var(--green);
 }
 .criteria {
+	color: var(--color);
 	list-style-type: none;
 }
-.criteria>li,#solution_tbody>tr>td {
+.criteria > li, #solution_tbody > tr > td {
 	border-style: solid;
 	border-width: var(--border-width);
 	position: relative;
 }
-:is(.criteria>li,#solution_tbody>tr>td):not(.guess) {
-	border-color: transparent;
+:is(.criteria > li, #solution_tbody > tr > td):not(.guess) {
+	border-color: #0000;
 }
-.error,.red {
+.error, .red {
 	color: var(--red);
 }
 .flex_row {
@@ -219,6 +263,9 @@ var {
 .guess {
 	border-color: var(--green);
 }
+.enigma {
+	font-family: monospace;
+}
 .hidden {
 	display: none;
 }
@@ -226,6 +273,7 @@ var {
 	cursor: progress;
 }
 .tab {
+	border-bottom: solid var(--border-width);
 	padding: var(--medium-space);
 }
 .verifiers {
@@ -233,27 +281,24 @@ var {
 	flex-wrap: wrap;
 	gap: var(--small-space);
 }
-.wait {
-	cursor: wait;
-}
 .x {
-	background-color: aqua;
+	background-color: #0ff;
 	clip-path: polygon(29% 100%, 71% 100%, 100% 71%, 100% 29%, 71% 0, 29% 0, 0 29%, 0 71%);
 }
-.y {
-	background-color: yellow;
-}
-.z {
-	background-color: fuchsia;
-	border-radius: 50%;
-}
-.x,.y,.z {
-	color: black;
+.x, .y, .z {
+	color: #000;
 	display: inline-block;
 	text-align: center;
 	width: 1lh;
 }
-#cancel_button,#checkboxes,#generate_button,#import_button,#question_button {
+.y {
+	background-color: #ff0;
+}
+.z {
+	background-color: #f0f;
+	border-radius: 50%;
+}
+#cancel_button, #checkboxes, #generate_button, #import_button, #question_button {
 	grid-column: span 2;
 	justify-self: center;
 }
@@ -261,12 +306,13 @@ var {
 	align-items: flex-start;
 	gap: var(--medium-space);
 }
-#checkboxes,#verify_form {
+#checkboxes, #verify_form {
 	display: flex;
 	flex-direction: column;
 }
 #code::placeholder {
-	font-weight: bold;
+	font-family: var(--font-family);
+	font-style: italic;
 	text-align: center;
 }
 #copied {
@@ -285,7 +331,7 @@ var {
 	margin: auto;
 	padding: var(--big-space);
 }
-#generate_form,#import_form,#question_form {
+#generate_form, #import_form, #question_form {
 	display: inline-grid;
 	grid-template-columns: auto auto;
 }
@@ -294,32 +340,22 @@ var {
 	table-layout: fixed;
 	width: 100%;
 }
-#headers>tbody>tr>td:not(:first-child) {
+#headers > tbody > tr > td:not(:first-child) {
 	border-left: var(--border-width) solid var(--color);
 }
-#headers>tbody>tr>td:not(:last-child) {
+#headers > tbody > tr > td:not(:last-child) {
 	border-right: var(--border-width) solid var(--color);
 }
 #questions_table {
 	border-collapse: collapse;
 }
-#play>* {
+#play > * {
 	margin: var(--big-space) 0;
-}
-:is(#questions_table,#solution_table)>tbody>tr>td,#questions_table,#solution_table,#questions_table>thead>tr>th {
-	border-style: solid;
-	border-width: var(--border-width);
 }
 #size {
 	justify-self: left;
 }
-#start_here>:not(:first-child) {
-	margin-top: var(--medium-space);
-}
-#start_here>:not(:last-child) {
-	margin-bottom: var(--medium-space);
-}
-#tabs {
+/*#tabs {
 	border-color: var(--color);
 	border-left-style: solid;
 	border-right-style: solid;
@@ -327,9 +363,9 @@ var {
 	border-width: var(--border-width);
 	margin: var(--small-space);
 }
-#tabs:has(nav>table>tbody>tr>td>details[open]) {
+#tabs:has(nav > details[open]) {
 	border-bottom-style: solid;
-}
+}*/
 #verifiers {
 	margin-left: var(--small-space);
 	margin-right: var(--small-space);
@@ -341,10 +377,7 @@ var {
 	:not(input):focus {
 		outline: none;
 	}
-	a:active {
-		text-decoration-style: solid;
-	}
-	:is(a,button:enabled,input,summary,.clickable):active {
+	:is(a, button:enabled, input, summary, .clickable):active {
 		background-color: var(--color);
 		color: var(--background-color);
 	}
@@ -356,10 +389,7 @@ var {
 	:focus {
 		outline: var(--border-width) solid var(--color);
 	}
-	a:hover {
-		text-decoration-style: solid;
-	}
-	:is(a,button:enabled,input,summary,.clickable):hover{
+	:is(a, button:enabled, input, summary, .clickable):hover{
 		background-color: var(--color);
 		color: var(--background-color);
 	}

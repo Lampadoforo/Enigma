@@ -1,4 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
-	<circle cx="11" cy="11" fill="none" r="10" stroke="currentColor"/>
-	<text fill="currentColor" font-size="20px" text-anchor="middle" transform="translate(0 7)" x="11" y="11">!</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 46">
+	<style>
+		svg {
+			color-scheme: dark light;
+		}
+	</style>
+	<mask id="b">
+		<rect fill="#fff" height="100%" width="100%"/>
+		<text dominant-baseline="central" font-family="'Times New Roman',serif" font-size="46px" text-anchor="middle" x="23" y="23">!</text>
+	</mask>
+	<circle cx="23" cy="23" fill="currentColor" mask="url(#b)" r="22" stroke="currentColor"/>
 </svg>

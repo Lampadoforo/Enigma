@@ -146,7 +146,7 @@ export default defineConfig([
 	},
 	configjs('**/*.mjs'),
 	configjs('**/main.js', globals.browser),
-	configjs('**/worker.js', globals.worker),
+	configjs('**/workers/*.js', globals.worker),
 	{
 		extends: ['json/recommended'],
 		files: ['**/*.json'],

@@ -1,0 +1,7 @@
+img {
+	height: 1lh;
+	width: 1lh;
+}
+button:enabled:hover > img {
+	filter: invert(1);
+}

@@ -626,7 +626,7 @@ const appendToVerifiers = (letter, verifier) => {
 				},
 			),
 			append(
-				addClasses(create('ol'), 'criteria'),
+				addClasses(create('ul'), 'criteria'),
 				...verifier.map(c => onClick(
 					addClasses(create('li', c.description), 'clickable'),
 					function() {
@@ -853,7 +853,7 @@ const extractEnigmaFromData = (data, length) => {
 
 // Extract double criteria from id
 const importDouble = importId => {
-	if (!/^[G-V][\dA-F][\w-](?:[\dA-F]{2}[\w-]){1,7}$/u.test(importId)) {
+	if (!/^[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}$/u.test(importId)) {
 		return null;
 	}
 	let data = BigInt(charDiff(importId, 'G')) << 12n | BigInt(`0x${importId[1]}`) << 8n | fromBase64(importId[2]);
@@ -942,6 +942,7 @@ for (const focusable of document.querySelectorAll('summary,a,input[type="checkbo
 						headers[j].open = false;
 					}
 				}
+				getSelection().empty();
 				show(tabs[i]);
 			} else {
 				hide(tabs[i]);
@@ -966,7 +967,7 @@ for (const focusable of document.querySelectorAll('summary,a,input[type="checkbo
 				create('fieldset'),
 				create('legend', charSum('A', i)),
 				append(
-					addClasses(create('ol'), 'criteria'),
+					addClasses(create('ul'), 'criteria'),
 					...allVerifiers[exampleVerifiers[i]].map(c => create('li', c.description)),
 				),
 			),
@@ -1008,7 +1009,7 @@ for (const label of document.getElementsByClassName('select')) {
 		base64[52 + i] = charSum('0', i);
 	}
 	base64[62] = '-';
-	base64[63] = '_';
+	base64[63] = '.';
 
 	// Sort the criteria, generate the ID and call setup
 	const afterGenSingle = setupEnigma => {
@@ -1115,8 +1116,8 @@ for (const label of document.getElementsByClassName('select')) {
 	};
 
 	// Used to create workers from a string containing the JavaScript code
-	/* global workerString */
-	const url = URL.createObjectURL(new Blob([workerString], {
+	/* global generateString */
+	const url = URL.createObjectURL(new Blob([generateString], {
 		type: 'text/javascript',
 	}));
 
@@ -1128,6 +1129,7 @@ for (const label of document.getElementsByClassName('select')) {
 		addClasses(document.documentElement, 'progress');
 		// Switch button
 		hide(this.elements.generate_button);
+		getSelection().empty();
 		show(this.elements.cancel_button);
 		const difficult = this.elements.difficult.checked;
 		const double = this.elements.double.checked;
@@ -1396,6 +1398,3 @@ onpopstate = event => {
 		headers[0].open = true;
 	}
 };
-
-// Remove the spinner
-document.documentElement.classList.remove('wait');
