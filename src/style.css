@@ -21,7 +21,7 @@ html {
 	background-color: var(--background-color);
 	color: var(--color);
 	color-scheme: dark light;
-	font-size: 1.2em;
+	font-size: 1.1em;
 	min-height: 100%;
 	text-align: center;
 }
@@ -153,8 +153,10 @@ input[type='checkbox']:not(:checked)::after {
 input[type='text'] {
 	background-color: var(--background-color);
 	color: var(--color);
-	font-family: monospace;
 	text-align: center;
+}
+input[type='text'], .enigma {
+	font-family: monospace, monospace;
 }
 input[type='text']:invalid {
 	border-color: var(--red);
@@ -192,7 +194,7 @@ select {
 }
 summary {
 	border-bottom: var(--border-width) solid;
-	padding: var(--small-space) 0;
+	padding: var(--small-space);
 	white-space: nowrap;
 }
 details:nth-child(2) > summary {
@@ -251,7 +253,8 @@ ul {
 .flex_row {
 	align-items: center;
 	display: flex;
-	gap: var(--medium-space);
+	flex-wrap: wrap;
+	gap: var(--small-space);
 	justify-content: center;
 }
 .green {
@@ -259,9 +262,6 @@ ul {
 }
 .guess {
 	border-color: var(--green);
-}
-.enigma {
-	font-family: monospace;
 }
 .hidden {
 	display: none;
@@ -278,22 +278,39 @@ ul {
 	flex-wrap: wrap;
 	gap: var(--small-space);
 }
-.x {
+.x, .y, .z {
+	align-items: center;
+	color: #000;
+	display: inline-flex;
+	position: relative;
+	justify-content: center;
+	width: .9lh;
+}
+.x::after {
 	background-color: #0ff;
 	clip-path: polygon(29% 100%, 71% 100%, 100% 71%, 100% 29%, 71% 0, 29% 0, 0 29%, 0 71%);
+	content: '';
+	height: .9lh;
+	position: absolute;
+	width: .9lh;
+	z-index: -1;
 }
-.x, .y, .z {
-	color: #000;
-	display: inline-block;
-	text-align: center;
-	width: 1lh;
-}
-.y {
+.y::after {
 	background-color: #ff0;
+	content: '';
+	height: .9lh;
+	position: absolute;
+	width: .9lh;
+	z-index: -1;
 }
-.z {
+.z::after {
 	background-color: #f0f;
 	border-radius: 50%;
+	content: '';
+	height: .9lh;
+	position: absolute;
+	width: .9lh;
+	z-index: -1;
 }
 #cancel_button, #checkboxes, #generate_button, #import_button, #question_button {
 	grid-column: span 2;
