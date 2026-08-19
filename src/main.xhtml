@@ -1,6 +1,6 @@
 <!--The non-minified source code is on https://github.com/Lampadoforo/Enigma-->
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" class="wait" lang="it" xml:lang="it">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="it" xml:lang="it">
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -8,288 +8,338 @@
 		<link href="style.css" rel="stylesheet"/>
 		<link href="test.css" rel="stylesheet"/>
 		<link href="https://lampadoforo.github.io/Enigma/" rel="canonical"/>
-		<link type="image/svg+xml" href="favicon.svg" rel="icon"/>
+		<link type="image/svg+xml" href="svg/favicon.svg" rel="icon"/>
 		<meta name="description" content="Enigma è un’implementazione web del gioco da tavolo di deduzione logica Turing Machine."/>
+		<meta name="referrer" content="no-referrer"/>
 		<meta property="og:title" content="Enigma"/>
 		<meta property="og:type" content="website"/>
 		<meta property="og:image" content="https://lampadoforo.github.io/Enigma/logo.png"/>
 		<meta property="og:image:width" content="1200"/>
 		<meta property="og:image:height" content="630"/>
+		<meta property="og:image:alto" content="Il logo di Enigma"/>
 		<meta property="og:url" content="https://lampadoforo.github.io/Enigma/"/>
+		<meta property="og:description" content="Enigma è un’implementazione web del gioco da tavolo di deduzione logica Turing Machine."/>
+		<meta property="og:site_name" content="Enigma"/>
 		<meta property="og:locale" content="it_IT"/>
+		<meta name="twitter:card" content="summary_large_image"/>
 	</head>
 	<body>
-		<dialog id="dialog" tabindex="-1">
+		<dialog id="dialog">
 			<div class="flex_row">
-				<span id="error_no_criterion" class="error hidden">L’enigma usa un criterio inesistente.</span>
-				<span id="error_not_sorted" class="error hidden">I criteri usati dall’enigma non sono in ordine.</span>
-				<span id="error_no_solution" class="error hidden">L’enigma non ha soluzione.</span>
-				<span id="error_no_unique_solution" class="error hidden">L’enigma ha più di una soluzione.</span>
-				<span id="error_redundand" class="error hidden">L’enigma ha uno o più criteri ridondanti.</span>
-				<span id="error_no_verifier" class="error hidden">L’enigma usa un verificatore inesistente.</span>
+				<span id="error_no_criterion" class="error hidden">L’<wbr/>enigma usa un criterio inesistente.</span>
+				<span id="error_not_sorted" class="error hidden">I criteri usati dall’<wbr/>enigma non sono in ordine.</span>
+				<span id="error_no_solution" class="error hidden">L’<wbr/>enigma non ha soluzione.</span>
+				<span id="error_no_unique_solution" class="error hidden">L’<wbr/>enigma ha più di una soluzione.</span>
+				<span id="error_redundand" class="error hidden">L’<wbr/>enigma ha uno o più criteri ridondanti.</span>
+				<span id="error_no_verifier" class="error hidden">L’<wbr/>enigma usa un verificatore inesistente.</span>
 				<span id="error_incompatible" class="error hidden">I due verificatori usati in un verificatore di difficoltà estrema sono incompatibili.</span>
-				<button id="close_button" type="button" tabindex="-1">
-					<img alt="" src="icons/close.svg"/>
+				<button id="close_button" type="button">
+					<img alt="" src="svg/icons/close.svg"/>
 					Chiudi
 				</button>
 			</div>
 		</dialog>
-		<nav>
-			<details open="" tabindex="-1">
-				<summary tabindex="-1">Per iniziare</summary>
+		<div id="green"></div>
+		<div id="red"></div>
+		<header>
+			<h1>
+				<a id="home" href="?">ENIGMA</a>
+			</h1>
+			<details class="normal_details">
+				<summary class="normal_summary">Informazioni</summary>
+				<p><dfn>Enigma</dfn> è un’<wbr/>implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info" rel="external">Turing Machine</a>. Turing Machine è stato ideato da Fabien Gridel e Yoann Levet ed è pubblicato da <a href="https://www.scorpionmasque.com" hreflang="en" rel="external">Scorpion Masqué</a>.</p>
+				<p>Enigma è software libero, rilasciato con la <a href="https://www.gnu.org/licenses/gpl-3.0.html" hreflang="en" rel="external license">licenza GPLv3</a>; <a href="https://github.com/Lampadoforo/Enigma/">il codice sorgente di Enigma è disponibile su GitHub.</a></p>
+				<p>Il mio enigma preferito è <a class="enigma" href="?enigma=EB7E88A21498EECE">EB7E88A21498EECE</a>.</p>
 			</details>
-			<details tabindex="-1">
-				<summary tabindex="-1">Genera</summary>
-			</details>
-
-			<details tabindex="-1">
-				<summary tabindex="-1">Importa</summary>
-			</details>
-		</nav>
+		</header>
 		<main>
-			<div id="start_here" class="tab">
-				<p><dfn>Enigma</dfn> è un’implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info" tabindex="-1">Turing Machine</a>. Turing Machine è stato ideato da Fabien Gridel e Yoann Levet ed è pubblicato da <a href="https://www.scorpionmasque.com" tabindex="-1">Scorpion Masqué</a>. <a href="https://github.com/Lampadoforo/Enigma/" tabindex="-1">Il codice sorgente di Enigma è disponibile su GitHub</a>.</p>
-				<p>Lo scopo del gioco è indovinare l’<strong>unico</strong> codice di tre cifre da 1 a 5, indicate con <var class="x">x</var>, <var class="y">y</var> e <var class="z">z</var>, <dfn>accettato</dfn> da tutti i <dfn>verificatori</dfn>.</p>
-				<p>Questo è un possibile enigma con quattro verificatori, indicati con le lettere da A a D.</p>
-				<div id="example" class="verifiers"></div>
-				<p>Ogni verificatore accetta o rifiuta i codici seguendo un <dfn>criterio</dfn>, predeterminato ma sconosciuto, fra una lista di criteri possibili. Per esempio, il verificatore A qui sopra ha tre criteri possibili: il primo accetta un codice se la cifra <var class="y">y</var> è minore di 4 e lo rifiuta altrimenti; il secondo lo accetta se <var class="y">y</var> è uguale a 4; il terzo se <var class="y">y</var> è maggiore di 4, cioè uguale a 5. In alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma <strong>il criterio usato dal verificatore è soltanto uno</strong>.</p>
-				<p><strong>Nessun verificatore è superfluo</strong>: ogni verificatore rifiuta almeno un codice accettato da tutti gli altri.</p>
-				<p>Per trovare la soluzione, è possibile <dfn>interrogare</dfn> un verificatore, sottoponendo ad esso un codice; il verificatore risponderà <span class="green">✔</span> se lo accetta oppure <span class="red">✘</span> se lo rifiuta. Si possono interrogare fino a tre verificatori per turno usando lo stesso codice. Per esempio, per stabilire quale criterio è quello usato dal verificatore A, potremmo interrogarlo con il codice <span class="x">1</span><span class="y">2</span><span class="z">3</span>: se risponde <span class="green">✔</span>, significa che il criterio usato è il primo; se risponde <span class="red">✘</span>, significa che è uno degli altri due.</p>
-				<p>Per tenere traccia dei criteri possibili, si può fare click su un criterio per segnarlo come non valido, oppure fare click destro o premere a lungo su un touchscreen per segnare <em>gli altri</em> come non validi. Lo stesso è possibile con le cifre della soluzione.</p>
-				<p>Dopo aver elimanato tutti i valori tranne uno per ogni cifra della soluzione, è possibile <dfn>verificarla</dfn>. Se è corretta, si vince la partita; in caso contrario, la si perde. Il punteggio finale è dato dal numero di turni impiegati e, in caso di parità, dal numero di interrogazioni. Il punteggio migliore è quello più basso.</p>
-				<p>Ci sono due modificatori di difficoltà.</p>
-				<dl>
-					<div>
-						<dt>Usa anche verificatori difficili</dt>
-						<dd>per alcuni verificatori, lo stesso codice può essere accettato da più criteri.</dd>
+			<div id="tabs">
+				<details class="tab" open="">
+					<summary id="rules" class="tab_header">Regolamento</summary>
+					<div class="tab_content">
+						<p>Lo scopo del gioco è indovinare l’<wbr/>unico codice di tre cifre da 1 a 5, indicate con <var class="x">x</var>, <var class="y">y</var> e <var class="z">z</var>, <dfn>accettato</dfn> da tutti i <dfn>verificatori</dfn>.</p>
+						<p>Questo è un possibile enigma con quattro verificatori, indicati con le lettere da A a D.</p>
+						<div class="verifiers">
+							<fieldset>
+								<legend>A</legend>
+								<ul class="criteria">
+									<li class="clickable guessable"><var class="y">y</var>&lt;4</li>
+									<li class="clickable guessable"><var class="y">y</var>=4</li>
+									<li class="clickable guessable"><var class="y">y</var>&gt;4</li>
+								</ul>
+							</fieldset>
+							<fieldset>
+								<legend>B</legend>
+								<ul class="criteria">
+									<li class="clickable guessable">Nessun 3</li>
+									<li class="clickable guessable">Un 3</li>
+									<li class="clickable guessable">Due 3</li>
+									<li class="clickable guessable">Tre 3</li>
+								</ul>
+							</fieldset>
+							<fieldset>
+								<legend>C</legend>
+								<ul class="criteria">
+									<li class="clickable guessable"><var class="x">x</var>&lt;<var class="y">y</var></li>
+									<li class="clickable guessable"><var class="x">x</var>=<var class="y">y</var></li>
+									<li class="clickable guessable"><var class="x">x</var>&gt;<var class="y">y</var></li>
+								</ul>
+							</fieldset>
+							<fieldset>
+								<legend>D</legend>
+								<ul class="criteria">
+									<li class="clickable guessable"><var class="x">x</var>&lt;<var class="y">y</var> e <var class="x">x</var>&lt;<var class="z">z</var></li>
+									<li class="clickable guessable"><var class="y">y</var>&lt;<var class="x">x</var> e <var class="y">y</var>&lt;<var class="z">z</var></li>
+									<li class="clickable guessable"><var class="z">z</var>&lt;<var class="x">x</var> e <var class="z">z</var>&lt;<var class="y">y</var></li>
+								</ul>
+							</fieldset>
+						</div>
+						<p>Ogni verificatore accetta o rifiuta i codici seguendo un <dfn>criterio</dfn>, predeterminato ma sconosciuto, fra una lista di criteri possibili. Per esempio, il verificatore A qui sopra ha tre criteri possibili: il primo accetta un codice se la cifra <var class="y">y</var> è minore di 4 e lo rifiuta altrimenti; il secondo lo accetta se <var class="y">y</var> è uguale a 4; il terzo se <var class="y">y</var> è maggiore di 4, cioè uguale a 5. In alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma il criterio usato dal verificatore è soltanto uno.</p>
+						<p>Nessun verificatore è superfluo: ogni verificatore rifiuta almeno un codice accettato da tutti gli altri.</p>
+						<p>Per trovare la soluzione, è possibile <dfn>interrogare</dfn> un verificatore, sottoponendo ad esso un codice; il verificatore risponderà <span class="green">✔</span> se lo accetta oppure <span class="red">✘</span> se lo rifiuta. Si possono interrogare fino a tre verificatori per turno usando lo stesso codice. Per esempio, per stabilire quale criterio è quello usato dal verificatore A, potremmo interrogarlo con il codice <span class="x">1</span><span class="y">2</span><span class="z">3</span>: se risponde <span class="green">✔</span>, significa che il criterio usato è il primo; se risponde <span class="red">✘</span>, significa che è uno degli altri due.</p>
+						<p>Per tenere traccia dei criteri possibili, si può fare click su un criterio per segnarlo come non valido, oppure fare click destro o premere a lungo su un touchscreen per segnare <em>gli altri</em> come non validi. Lo stesso è possibile con le cifre della soluzione.</p>
+						<p>Dopo aver eliminato tutti i valori tranne uno per ogni cifra della soluzione, è possibile <dfn>verificarla</dfn>. Se è corretta, si vince la partita; in caso contrario, la si perde. Il punteggio finale è dato dal numero di turni impiegati e, in caso di parità, dal numero di interrogazioni. Il punteggio migliore è quello più basso.</p>
+						<p>Riportiamo nuovamente i punti chiave:</p>
+						<ul class="list">
+							<li>il codice è formato da tre cifre da 1 a 5;</li>
+							<li>il codice è l’<wbr/>unico accettato da tutti i verificatori;</li>
+							<li>ogni verificatore usa solo un criterio;</li>
+							<li>ogni verificatore rifiuta almeno un codice accettato da tutti gli altri.</li>
+						</ul>
+						<p>Ci sono due modificatori di difficoltà.</p>
+						<ul class="list">
+							<li>Usa anche verificatori difficili: per alcuni verificatori, lo stesso codice può essere accettato da più criteri.</li>
+							<li>Usa verificatori doppi: la lista di criteri di ogni verificatore è più lunga.</li>
+						</ul>
+						<p>Segue una lista di enigmi. I primi sedici non usano modificatori di difficoltà; gli ultimi quattro usano anche verificatori difficili. Il primo è quello usato sopra come esempio.</p>
+						<ol class="list">
+							<li>
+								<a class="enigma" href="?enigma=768C90FA">768C90FA</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=EF61242C">EF61242C</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=6D5F627C">6D5F627C</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=31EE7FB8">31EE7FB8</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=E12FA6EE">E12FA6EE</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=D8A26270">D8A26270</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=874FDE99">874FDE99</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=C4A0291104">C4A0291104</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=016D00CA75">016D00CA75</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=E037C268AF">E037C268AF</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=E1AAF6DD9B">E1AAF6DD9B</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=B1FFDA57">B1FFDA57</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=49B5EA74">49B5EA74</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=04502499">04502499</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=3F38EA42C0">3F38EA42C0</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=0ECA39822096">0ECA39822096</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=074EBA3E">074EBA3E</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=684D8872">684D8872</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=8BABB1670D">8BABB1670D</a>
+							</li>
+							<li>
+								<a class="enigma" href="?enigma=98478B29B51C">98478B29B51C</a>
+							</li>
+						</ol>
 					</div>
-					<div>
-						<dt>Usa verificatori doppi</dt>
-						<dd>la lista di criteri di ogni verificatore è più lunga.</dd>
+				</details>
+				<details class="tab">
+					<summary id="generate" class="tab_header">Genera</summary>
+					<div class="tab_content">
+						<form id="generate_form">
+							<label class="label_select" title="Il numero di verificatori dell’enigma">
+								Verificatori
+								<select id="size" title="Il numero di verificatori dell’enigma">
+									<option>2</option>
+									<option>3</option>
+									<option>4</option>
+									<option>5</option>
+									<option selected="">6</option>
+									<option>7</option>
+									<option>8</option>
+								</select>
+							</label>
+							<div id="checkboxes">
+								<label title="Per alcuni verificatori, lo stesso codice può essere accettato da più criteri">
+									<input id="difficult" type="checkbox" checked=""/>
+									Usa anche verificatori difficili
+								</label>
+								<label title="La lista di criteri di ogni verificatore è più lunga">
+									<input id="double" type="checkbox"/>
+									Usa verificatori doppi
+								</label>
+							</div>
+							<button id="generate_button" type="submit">
+								<img alt="" src="svg/icons/generate.svg"/>
+								Genera
+							</button>
+							<button id="cancel_button" type="button" class="hidden">
+								<img alt="" src="svg/icons/cancel.svg"/>
+								Annulla
+							</button>
+						</form>
 					</div>
-				</dl>
-				<p>Segue una lista di enigmi. I primi sedici non usano modificatori di difficoltà; gli ultimi quattro usano anche verificatori difficili. Il primo è quello usato sopra come esempio.</p>
-				<ol id="enigmas">
-					<li>
-						<a class="enigma" href="?e=768C90FA" tabindex="-1">768C90FA</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=EF61242C" tabindex="-1">EF61242C</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=6D5F627C" tabindex="-1">6D5F627C</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=31EE7FB8" tabindex="-1">31EE7FB8</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=E12FA6EE" tabindex="-1">E12FA6EE</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=D8A26270" tabindex="-1">D8A26270</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=874FDE99" tabindex="-1">874FDE99</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=C4A0291104" tabindex="-1">C4A0291104</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=016D00CA75" tabindex="-1">016D00CA75</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=E037C268AF" tabindex="-1">E037C268AF</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=E1AAF6DD9B" tabindex="-1">E1AAF6DD9B</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=B1FFDA57" tabindex="-1">B1FFDA57</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=49B5EA74" tabindex="-1">49B5EA74</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=04502499" tabindex="-1">04502499</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=3F38EA42C0" tabindex="-1">3F38EA42C0</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=0ECA39822096" tabindex="-1">0ECA39822096</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=074EBA3E" tabindex="-1">074EBA3E</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=684D8872" tabindex="-1">684D8872</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=8BABB1670D" tabindex="-1">8BABB1670D</a>
-					</li>
-					<li>
-						<a class="enigma" href="?e=98478B29B51C" tabindex="-1">98478B29B51C</a>
-					</li>
-				</ol>
-				<p>Il mio enigma preferito è <a class="enigma" href="?e=EB7E88A21498EECE" tabindex="-1">EB7E88A21498EECE</a>.</p>
-			</div>
-			<div class="hidden tab">
-				<form id="generate_form">
-					<label class="select" for="size" title="Il numero di verificatori dell’enigma">Verificatori</label>
-					<select id="size" title="Il numero di verificatori dell’enigma">
-						<option>2</option>
-						<option>3</option>
-						<option>4</option>
-						<option>5</option>
-						<option selected="">6</option>
-						<option>7</option>
-						<option>8</option>
-					</select>
-					<div id="checkboxes">
-						<label title="Per alcuni verificatori, lo stesso codice può essere accettato da più criteri, ma il criterio usato dal verificatore è soltanto uno">
-							<input id="difficult" type="checkbox" checked="" inert="" tabindex="-1"/>
-							Usa anche verificatori difficili
-						</label>
-						<label title="La lista di criteri di ogni verificatore è più lunga, ma il criterio usato dal verificatore è soltanto uno">
-							<input id="double" type="checkbox" inert="" tabindex="-1"/>
-							Usa verificatori doppi
-						</label>
+				</details>
+				<details class="tab">
+					<summary id="import" class="tab_header">Importa</summary>
+					<div class="tab_content">
+						<form id="import_form">
+							<label>
+								ID
+								<input id="id" type="text" maxlength="24" minlength="2" pattern="(?:[\dA-F]{2}){2,8}|[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}" required="" size="24"/>
+							</label>
+							<button id="import_button" type="submit" disabled="">
+								<img alt="" src="svg/icons/import.svg"/>
+								Importa
+							</button>
+						</form>
 					</div>
-					<button id="generate_button" type="submit" tabindex="-1">
-						<img alt="" src="icons/generate.svg"/>
-						Genera
-					</button>
-					<button id="cancel_button" type="button" class="hidden" tabindex="-1">
-						<img alt="" src="icons/cancel.svg"/>
-						Annulla
-					</button>
-				</form>
+				</details>
 			</div>
-			<div class="hidden tab">
-				<form id="import_form">
-					<label for="id">ID</label>
-					<input id="id" type="text" maxlength="24" minlength="2" pattern="(?:[\dA-F]{2}){2,8}|[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}" required="" size="24"/>
-					<button id="import_button" type="submit" disabled="" tabindex="-1">
-						<img alt="" src="icons/import.svg"/>
-						Importa
-					</button>
-				</form>
-			</div>
+			<div id="spinner" class="hidden"></div>
 			<div id="play" class="hidden">
 				<div class="flex_row">
 					<a id="link" class="enigma"></a>
 					<div class="flex_row">
-						<button id="copy" type="button" tabindex="-1">
-							<img alt="" src="icons/copy.svg"/>
+						<button id="copy" type="button">
+							<img alt="" src="svg/icons/copy.svg"/>
 							Copia
-							<span id="copied" class="hidden">Copiato!</span>
 						</button>
-						<button id="share" type="button" class="hidden" tabindex="-1">
-							<img alt="" src="icons/share.svg"/>
+						<button id="share" type="button" class="hidden">
+							<img alt="" src="svg/icons/share.svg"/>
 							Condividi
 						</button>
 					</div>
 				</div>
 				<div id="verifiers" class="verifiers"></div>
-				<div>
-					<form id="question_form">
-						<label for="code">Codice</label>
+				<form id="question_form">
+					<label>
+						Codice
 						<input id="code" type="text" inputmode="numeric" maxlength="3" minlength="3" pattern="[1-5]{3}" placeholder="xyz" required="" size="3"/>
-						<label class="select" for="verifier">Verificatore</label>
+					</label>
+					<label class="label_select">
+						Verificatore
 						<select id="verifier"></select>
-						<button id="question_button" type="submit" tabindex="-1">
-							<img alt="" src="icons/question.svg"/>
-							Interroga
-						</button>
-					</form>
-				</div>
-				<div>
-					<table id="questions_table">
-						<thead>
-							<tr>
-								<th>Codice</th>
-								<th>Verificatore</th>
-								<th>Esito</th>
-							</tr>
-						</thead>
-						<tbody id="questions_tbody"></tbody>
-					</table>
-				</div>
-				<div>
-					<table id="solution_table">
-						<thead>
-							<tr>
-								<th colspan="3">Soluzione</th>
-							</tr>
-						</thead>
-						<tbody id="solution_tbody">
-							<tr>
-								<td>
-									<span class="x">5</span>
-								</td>
-								<td>
-									<span class="y">5</span>
-								</td>
-								<td>
-									<span class="z">5</span>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<span class="x">4</span>
-								</td>
-								<td>
-									<span class="y">4</span>
-								</td>
-								<td>
-									<span class="z">4</span>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<span class="x">3</span>
-								</td>
-								<td>
-									<span class="y">3</span>
-								</td>
-								<td>
-									<span class="z">3</span>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<span class="x">2</span>
-								</td>
-								<td>
-									<span class="y">2</span>
-								</td>
-								<td>
-									<span class="z">2</span>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<span class="x">1</span>
-								</td>
-								<td>
-									<span class="y">1</span>
-								</td>
-								<td>
-									<span class="z">1</span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div>
-					<form id="verify_form">
-						<button id="verify_button" type="submit" tabindex="-1">
-							<img alt="" src="icons/verify.svg"/>
-							Verifica
-						</button>
-						<output id="result" class="hidden"></output>
-					</form>
-				</div>
+					</label>
+					<button id="question_button" type="submit">
+						<img alt="" src="svg/icons/question.svg"/>
+						Interroga
+					</button>
+				</form>
+				<table id="questions_table">
+					<thead>
+						<tr>
+							<th>Codice</th>
+							<th>Verificatore</th>
+							<th>Esito</th>
+						</tr>
+					</thead>
+					<tbody id="questions_tbody"></tbody>
+				</table>
+				<table id="solution_table">
+					<thead>
+						<tr>
+							<th colspan="3">Soluzione</th>
+						</tr>
+					</thead>
+					<tbody id="solution_tbody">
+						<tr>
+							<td class="guessable">
+								<span class="x">5</span>
+							</td>
+							<td class="guessable">
+								<span class="y">5</span>
+							</td>
+							<td class="guessable">
+								<span class="z">5</span>
+							</td>
+						</tr>
+						<tr>
+							<td class="guessable">
+								<span class="x">4</span>
+							</td>
+							<td class="guessable">
+								<span class="y">4</span>
+							</td>
+							<td class="guessable">
+								<span class="z">4</span>
+							</td>
+						</tr>
+						<tr>
+							<td class="guessable">
+								<span class="x">3</span>
+							</td>
+							<td class="guessable">
+								<span class="y">3</span>
+							</td>
+							<td class="guessable">
+								<span class="z">3</span>
+							</td>
+						</tr>
+						<tr>
+							<td class="guessable">
+								<span class="x">2</span>
+							</td>
+							<td class="guessable">
+								<span class="y">2</span>
+							</td>
+							<td class="guessable">
+								<span class="z">2</span>
+							</td>
+						</tr>
+						<tr>
+							<td class="guessable">
+								<span class="x">1</span>
+							</td>
+							<td class="guessable">
+								<span class="y">1</span>
+							</td>
+							<td class="guessable">
+								<span class="z">1</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<form id="verify_form">
+					<button id="verify_button" type="submit">
+						<img alt="" src="svg/icons/verify.svg"/>
+						Verifica
+					</button>
+					<output id="result" class="hidden"></output>
+				</form>
 			</div>
 		</main>
 		<script src="workers/generate.js"></script>

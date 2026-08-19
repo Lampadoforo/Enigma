@@ -17,20 +17,15 @@ jobs:
       - uses: actions/setup-node@v6
       - run: |
           scripts/lint.sh
+          scripts/build.sh
           for branch in $(curl https://api.github.com/repos/Lampadoforo/Enigma/branches | jq -r 'map(.name)[]'); do
             if [ ${branch} != ${{ github.ref_name }} ]; then
-              mkdir -p "_site/${branch}/"
+              mkdir "_site/${branch}/"
               wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
             fi
           done
-          scripts/build.sh
-          cp _site/main/index.xhtml _site/
-          if [ ${{ github.ref_name }} = main ]; then
-            sudo apt-get install librsvg2-bin
-            rsvg-convert -o _site/logo.png -w 1200 logo.svg
-          else
-            wget -P _site/ https://lampadoforo.github.io/Enigma/og.png
-          fi
+          cp -r _site/main/ _site/
+          sed 's/\/main//' _site/index.xhtml
       - uses: actions/upload-pages-artifact@v4
       - id: deployment
         uses: actions/deploy-pages@v5

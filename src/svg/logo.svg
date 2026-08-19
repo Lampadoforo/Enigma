@@ -1,14 +1,8 @@
 <svg viewBox="0 0 80 42" xmlns="http://www.w3.org/2000/svg">
 	<style>
-		svg {
-			color-scheme: dark light;
-		}
 		text {
 			font-family: 'Times New Roman', serif;
 			user-select: none;
-		}
-		.c {
-			
 		}
 		.v {
 			dominant-baseline: middle;
@@ -17,6 +11,7 @@
 			text-anchor: middle;
 		}
 	</style>
+	<rect fill="#fff" height="100%" width="100%"/>
 	<polygon fill="#0ff" points="15.1421,21 21,15.1421 21,6.8579 15.1421,1 6.8579,1 1,6.8579 1,15.1421 6.8579,21"/>
 	<text class="v" x="11" y="11">x</text>
 	<rect height="20" fill="#ff0" width="20" x="21" y="1"/>

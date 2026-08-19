@@ -119,8 +119,9 @@ export default defineConfig([
 			// To remove
 			'html/element-newline': error({
 				skip: [
-					'dd',
+					'li',
 					'p',
+					'span',
 				],
 			}),
 			'html/indent': error('tab'),

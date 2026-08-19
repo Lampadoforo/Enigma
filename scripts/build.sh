@@ -1,27 +1,51 @@
 #!/bin/sh
-set -eu
+set -Ceu
+
+svgBase64() {
+	base64=$(npx svgo -o - --config config/svgo.mjs "$1" | sed "s/&quot;/'/g" | base64 -w 0)
+	echo "data:image/svg+xml;base64,${base64}"
+}
 
 swc() {
 	npx swc -f "$1" --config-file config/swc.json -q
 }
 
-npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
+if [ "$#" -eq 0 ]; then
+	npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
+	sudo apt-get install librsvg2-bin
+fi
 
-dir=_site/$(git branch --show-current)
+branch=$(git branch --show-current)
+dir="_site/${branch}"
 mkdir -p "${dir}/tmp/"
 
-css=$(tr -d '\t\n' < src/style.css | sed 's/\/\*(.*?)\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g;s/ }/}/g;s/img/svg/g')
+cmds=
+for file in src/svg/backgrounds/*; do
+	name=${file##*/}
+	base64=$(svgBase64 "${file}")
+	echo "background-image: url('${base64}');" > "${dir}/tmp/${name}"
+	cmds="${cmds}/${name}/{
+		r ${dir}/tmp/${name}
+		d
+	};"
+done
+
+css=$(sed "${cmds}" src/style.css | tr -d '\t\n' | sed 's/\/\*[^\*]*\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g')
 echo "<style>${css}</style>" > "${dir}/tmp/style.css"
+cmds=/test.css/d\;
 
-favicon=$(npx svgo -o - --config config/svgo.mjs src/favicon.svg | sed "s/&quot;/'/g" | base64 -w 0)
-mime=image/svg+xml
-echo "<link type=\"${mime}\" href=\"data:${mime};base64,${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
+favicon=$(svgBase64 src/svg/favicon.svg)
+echo "<link type=\"image/svg+xml\" href=\"${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
 
-for file in src/icons/*; do
+for file in src/svg/icons/*; do
 	npx svgo -o - --config config/svgo.mjs "${file}" > "${dir}/tmp/${file##*/}"
 done
 
-cmds=/test.css/d\;
+rsvg-convert -o "${dir}/logo.png" -w 1200 src/svg/logo.svg
+name=$(b3sum -l 3 --raw "${dir}/logo.png" | basenc --base64url).png
+mv "${dir}/logo.png" "${dir}/${name}"
+cmds="${cmds}s/logo.png/${branch}\/${name}/;"
+
 workers=
 for file in src/workers/*; do
 	worker="${file##*/}"
