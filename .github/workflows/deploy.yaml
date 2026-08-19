@@ -24,7 +24,7 @@ jobs:
               wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
             fi
           done
-          cp -r _site/main/ _site/
+          cp _site/main/* _site/
           sed 's/\/main//' _site/index.xhtml
       - uses: actions/upload-pages-artifact@v4
       - id: deployment
