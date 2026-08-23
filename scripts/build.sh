@@ -12,7 +12,7 @@ swc() {
 
 if [ "$#" -eq 0 ]; then
 	npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
-	sudo apt-get install librsvg2-bin
+	sudo apt-get -qq install librsvg2-bin
 fi
 
 branch=$(git branch --show-current)

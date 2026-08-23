@@ -224,8 +224,10 @@ select:active {
 		}
 	}
 }
+/* Replace white-space with text-wrap-mode in September 2026 */
 summary {
 	text-align: center;
+	white-space: nowrap;
 }
 svg {
 	display: block;
