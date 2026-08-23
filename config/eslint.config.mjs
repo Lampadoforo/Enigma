@@ -134,13 +134,11 @@ export default defineConfig([
 			'html/require-form-method': 'off',
 			'html/sort-attrs': error({
 				priority: [
-					'xmlns',
 					'id',
 					'name',
 					'property',
 					'type',
 					'class',
-					'style',
 				],
 			}),
 		},

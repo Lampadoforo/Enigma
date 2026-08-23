@@ -30,15 +30,20 @@ for file in src/svg/backgrounds/*; do
 	};"
 done
 
-css=$(sed "${cmds}" src/style.css | tr -d '\t\n' | sed 's/\/\*[^\*]*\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g')
+css=$(sed "${cmds}" src/style.css | tr -d '\t\n' | sed 's/\/\*[^\*]*\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g;s/ ?> />/g')
 echo "<style>${css}</style>" > "${dir}/tmp/style.css"
 cmds=/test.css/d\;
 
 favicon=$(svgBase64 src/svg/favicon.svg)
 echo "<link type=\"image/svg+xml\" href=\"${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
 
-for file in src/svg/icons/*; do
-	npx svgo -o - --config config/svgo.mjs "${file}" > "${dir}/tmp/${file##*/}"
+for file in src/svg/images/*; do
+	name=${file##*/}
+	npx svgo -o - --config config/svgo.mjs "${file}" > "${dir}/tmp/${name}"
+	id=$(sed -n 's/.*<img \(id="[^"]*"\( class="[^"]*"\)*\).*src="svg\/images\/'"${name}"'".*/\1/p' src/main.xhtml)
+	if [ -n "${id}" ]; then
+		sed -i "s/<svg/<svg ${id}/" "${dir}/tmp/${name}"
+	fi
 done
 
 rsvg-convert -o "${dir}/logo.png" -w 1200 src/svg/logo.svg

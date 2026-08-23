@@ -3,8 +3,11 @@
 		--b: #000;
 		--f: #fff;
 	}
-	select:not(:hover) {
+	select {
 		filter: invert();
+	}
+	select:active {
+		filter: none;
 	}
 }
 @media(prefers-color-scheme: light) {
@@ -12,7 +15,7 @@
 		--b: #fff;
 		--f: #000;
 	}
-	select:hover {
+	select:active {
 		filter: invert();
 	}
 }
@@ -39,6 +42,11 @@
 a {
 	color: var(--f);
 }
+:is(a, button:enabled, input, label, summary, .clickable):active {
+	background-color: var(--f);
+	color: var(--b);
+	-webkit-tap-highlight-color: #0000;
+}
 button {
 	appearance: none;
 	background-color: #0000;
@@ -60,6 +68,7 @@ button:enabled, label, summary, select, .clickable {
 button:disabled {
 	border-color: #757575;
 	color: #757575;
+	cursor: not-allowed;
 }
 button:enabled {
 	border-color: var(--f);
@@ -78,6 +87,9 @@ button:enabled {
 body {
 	margin: 0;
 }
+details {
+	border: 1px solid;
+}
 fieldset {
 	border: 1px solid;
 	flex: 1;
@@ -94,7 +106,7 @@ form, #checkboxes {
 }
 header {
 	flex-wrap: wrap;
-	justify-content: space-between;
+	justify-content: space-around;
 	margin: .5em;
 }
 h1 {
@@ -105,8 +117,7 @@ html {
 	background-color: var(--b);
 	color: var(--f);
 	color-scheme: dark light;
-	font-size: 1.1em;
-	line-height: 1.5;
+	font: 19px/1.5 'Times New Roman', serif;
 	min-height: 100%;
 	scroll-behavior: smooth;
 }
@@ -123,7 +134,7 @@ input[type='checkbox'] {
 	justify-content: center;
 	pointer-events: none;
 }
-input[type='checkbox'], svg {
+input[type='checkbox'], button > svg {
 	height: 1lh;
 	width: 1lh;
 }
@@ -190,11 +201,12 @@ select {
 	padding: .5em 2em .5em .5em;
 	pointer-events: auto;
 }
-select:hover {
+select:active {
 	border-color: #fff;
 	outline-color: #fff;
+	-webkit-tap-highlight-color: #0000;
 }
-/* Remove @supports in December 2028 */
+/* Remove @supports in December 2028 and rationalize dark mode */
 @supports selector(select:open) {
 	select:open {
 		background-image: url('svg/backgrounds/up.svg');
@@ -211,6 +223,12 @@ select:hover {
 			filter: invert();
 		}
 	}
+}
+summary {
+	text-align: center;
+}
+svg {
+	display: block;
 }
 table {
 	border: 1px solid;
@@ -277,13 +295,10 @@ th {
 .list {
 	margin: 0 .5em .5em 2em;
 }
-.normal_details {
-	border: 1px solid;
-}
 .normal_summary {
 	padding: .5em;
 }
-.normal_details[open]>.normal_summary {
+details[open] > .normal_summary {
 	border-bottom: 1px solid var(--f);
 }
 .pass_through {
@@ -299,13 +314,15 @@ th {
 .tab_content  {
 	grid-area: d;
 }
-main:has(> :is(#spinner, #play):not(.hidden)) > #tabs > .tab > .tab_content {
+main:has(> #play:not(.hidden)) > #tabs > .tab > .tab_content {
 	border-bottom: 1px solid;
 }
 @supports selector(.tab[open]::details-content) {
 	.tab[open]::details-content {
-		border-bottom: 1px solid;
 		grid-area: d;
+	}
+	main:has(> #play:not(.hidden)) > #tabs > .tab[open]::details-content {
+		border-bottom: 1px solid;
 	}
 	.tab_content {
 		border-bottom: none;
@@ -316,7 +333,6 @@ main:has(> :is(#spinner, #play):not(.hidden)) > #tabs > .tab > .tab_content {
 	border-bottom-width: 1px;
 	border-top: 1px solid var(--f);
 	padding: .5em 0 .5em;
-	text-align: center;
 }
 .tab[open] > .tab_header {
 	border-bottom-color: #0000;
@@ -358,6 +374,14 @@ main:has(> :is(#spinner, #play):not(.hidden)) > #tabs > .tab > .tab_content {
 	width: .8lh;
 	z-index: -1;
 }
+#a, #r {
+	height: 100%;
+	inset: 0;
+	opacity: 0;
+	position: fixed;
+	width: 100%;
+	z-index: -1;
+}
 #code::placeholder {
 	font-family: initial;
 	font-style: italic;
@@ -369,38 +393,22 @@ main:has(> :is(#spinner, #play):not(.hidden)) > #tabs > .tab > .tab_content {
 	margin: auto;
 	padding: .5em;
 }
-#green {
-	background-image: url('svg/backgrounds/✔.svg');
-}
-#green, #red {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: auto;
-	inset: 0;
-	opacity: 0;
-	position: fixed;
-	z-index: -1;
-}
 #import {
 	grid-area: c;
+}
+#o {
+	height: 4lh;
+	margin: .5em auto .5em;
+	width: 4lh;
 }
 #play > * {
 	margin-bottom: 1em;
 	margin-top: 1em;
 }
-#red {
-	background-image: url('svg/backgrounds/✘.svg');
-}
 #generate {
 	grid-area: b;
 	border-left: 1px solid var(--f);
 	border-right: 1px solid var(--f);
-}
-#spinner {
-	background-image: url('svg/backgrounds/spinner.svg');
-	height: 8em;
-	margin: 1em auto 0;
-	width: 8em;
 }
 #tabs {
 	display: grid;
@@ -415,17 +423,24 @@ main:has(> :is(#spinner, #play):not(.hidden)) > #tabs > .tab > .tab_content {
 #questions_table > thead > tr > th, #questions_table > tbody > tr > td {
 	border: 1px solid;
 }
-@media(pointer: coarse) {
-	:is(a, button:enabled, input, summary, .clickable):active {
-		background-color: var(--f);
-		color: var(--b);
-		-webkit-tap-highlight-color: #0000;
-	}
-}
 @media(pointer: fine) {
 	:is(a, button:enabled, input, summary, .clickable):hover{
 		background-color: var(--f);
 		color: var(--b);
+	}
+	select:hover {
+		border-color: #fff;
+		outline-color: #fff;
+	}
+	@media(prefers-color-scheme: dark) {
+		select:hover {
+			filter: none;
+		}
+	}
+	@media(prefers-color-scheme: light) {
+		select:hover {
+			filter: invert();
+		}
 	}
 }
 @keyframes flash {

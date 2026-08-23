@@ -1,6 +1,6 @@
 <!--The non-minified source code is on https://github.com/Lampadoforo/Enigma-->
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="it" xml:lang="it">
+<html lang="it" xml:lang="it" xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -34,21 +34,21 @@
 				<span id="error_no_verifier" class="error hidden">L’<wbr/>enigma usa un verificatore inesistente.</span>
 				<span id="error_incompatible" class="error hidden">I due verificatori usati in un verificatore di difficoltà estrema sono incompatibili.</span>
 				<button id="close_button" type="button">
-					<img alt="" src="svg/icons/close.svg"/>
+					<img alt="" src="svg/images/close.svg"/>
 					Chiudi
 				</button>
 			</div>
 		</dialog>
-		<div id="green"></div>
-		<div id="red"></div>
+		<img id="a" alt="" src="svg/images/v.svg"/>
+		<img id="r" alt="" src="svg/images/x.svg"/>
 		<header>
 			<h1>
 				<a id="home" href="?">ENIGMA</a>
 			</h1>
-			<details class="normal_details">
+			<details>
 				<summary class="normal_summary">Informazioni</summary>
 				<p><dfn>Enigma</dfn> è un’<wbr/>implementazione web del gioco da tavolo di deduzione logica <a href="https://turingmachine.info" rel="external">Turing Machine</a>. Turing Machine è stato ideato da Fabien Gridel e Yoann Levet ed è pubblicato da <a href="https://www.scorpionmasque.com" hreflang="en" rel="external">Scorpion Masqué</a>.</p>
-				<p>Enigma è software libero, rilasciato con la <a href="https://www.gnu.org/licenses/gpl-3.0.html" hreflang="en" rel="external license">licenza GPLv3</a>; <a href="https://github.com/Lampadoforo/Enigma/">il codice sorgente di Enigma è disponibile su GitHub.</a></p>
+				<p>Enigma è software libero, rilasciato sotto la <a href="https://www.gnu.org/licenses/gpl-3.0.html" hreflang="en" rel="external license">licenza GPLv3</a>: questo significa che puoi usarlo per qualsiasi scopo, copiarlo, modificarlo e ridistribuirlo sotto la stessa licenza. <a href="https://github.com/Lampadoforo/Enigma/">Il codice sorgente di Enigma è disponibile su GitHub.</a></p>
 				<p>Il mio enigma preferito è <a class="enigma" href="?enigma=EB7E88A21498EECE">EB7E88A21498EECE</a>.</p>
 			</details>
 		</header>
@@ -203,11 +203,11 @@
 								</label>
 							</div>
 							<button id="generate_button" type="submit">
-								<img alt="" src="svg/icons/generate.svg"/>
+								<img alt="" src="svg/images/generate.svg"/>
 								Genera
 							</button>
 							<button id="cancel_button" type="button" class="hidden">
-								<img alt="" src="svg/icons/cancel.svg"/>
+								<img alt="" src="svg/images/cancel.svg"/>
 								Annulla
 							</button>
 						</form>
@@ -222,24 +222,24 @@
 								<input id="id" type="text" maxlength="24" minlength="2" pattern="(?:[\dA-F]{2}){2,8}|[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}" required="" size="24"/>
 							</label>
 							<button id="import_button" type="submit" disabled="">
-								<img alt="" src="svg/icons/import.svg"/>
+								<img alt="" src="svg/images/import.svg"/>
 								Importa
 							</button>
 						</form>
 					</div>
 				</details>
 			</div>
-			<div id="spinner" class="hidden"></div>
+			<img id="o" class="hidden" alt="" src="svg/images/spinner.svg"/>
 			<div id="play" class="hidden">
 				<div class="flex_row">
 					<a id="link" class="enigma"></a>
 					<div class="flex_row">
 						<button id="copy" type="button">
-							<img alt="" src="svg/icons/copy.svg"/>
+							<img alt="" src="svg/images/copy.svg"/>
 							Copia
 						</button>
 						<button id="share" type="button" class="hidden">
-							<img alt="" src="svg/icons/share.svg"/>
+							<img alt="" src="svg/images/share.svg"/>
 							Condividi
 						</button>
 					</div>
@@ -255,7 +255,7 @@
 						<select id="verifier"></select>
 					</label>
 					<button id="question_button" type="submit">
-						<img alt="" src="svg/icons/question.svg"/>
+						<img alt="" src="svg/images/question.svg"/>
 						Interroga
 					</button>
 				</form>
@@ -335,7 +335,7 @@
 				</table>
 				<form id="verify_form">
 					<button id="verify_button" type="submit">
-						<img alt="" src="svg/icons/verify.svg"/>
+						<img alt="" src="svg/images/verify.svg"/>
 						Verifica
 					</button>
 					<output id="result" class="hidden"></output>

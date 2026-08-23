@@ -559,8 +559,9 @@ for (let i = 0; i < allVerifiers.length; i += 1) {
 
 const canonical = document.querySelector('link[rel="canonical"]').href;
 const dialog = document.getElementById('dialog');
-const green = document.getElementById('green');
-const red = document.getElementById('red');
+const a = document.getElementById('a');
+const o = document.getElementById('o');
+const r = document.getElementById('r');
 const errors = [...document.getElementsByClassName('error')];
 const errorNoCriterion = document.getElementById('error_no_criterion');
 const errorIncompatible = document.getElementById('error_incompatible');
@@ -570,7 +571,6 @@ const errorNoUniqueSolution = document.getElementById('error_no_unique_solution'
 const errorRedundand = document.getElementById('error_redundand');
 const errorNoVerifier = document.getElementById('error_no_verifier');
 const tabs = [...document.getElementsByClassName('tab')];
-const spinner = document.getElementById('spinner');
 const play = document.getElementById('play');
 const link = document.getElementById('link');
 const copy = document.getElementById('copy');
@@ -889,10 +889,10 @@ const importEnigma = importId => {
 	setupEnigma.id = importId;
 	setupEnigma.solution = null;
 	// For each code accepted by the criterion that accepts fewer codes
-	for (const s of setupEnigma.criteria[setupEnigma.criteria.reduce((a, c, i) => c.accepted.length < a.value ? {
+	for (const s of setupEnigma.criteria[setupEnigma.criteria.reduce((p, c, i) => c.accepted.length < p.value ? {
 		index: i,
 		value: c.accepted.length,
-	} : a, {
+	} : p, {
 		index: -1,
 		value: 5 * 5 * 5,
 	}).index].accepted) {
@@ -930,7 +930,7 @@ const endGeneration = () => {
 	});
 	hide(document.forms.generate_form.elements.cancel_button);
 	show(document.forms.generate_form.elements.generate_button);
-	hide(spinner);
+	hide(o);
 	document.documentElement.classList.remove('progress');
 };
 
@@ -945,12 +945,13 @@ const importEnigmaAndPush = importId => {
 };
 
 // Set theme-color
-{
-	const meta = create('meta');
-	meta.name = 'theme-color';
-	meta.content = getComputedStyle(document.documentElement).getPropertyValue('--f');
-	document.head.append(meta);
-}
+const meta = create('meta');
+meta.name = 'theme-color';
+meta.content = getComputedStyle(document.documentElement).getPropertyValue('--b');
+document.head.append(meta);
+matchMedia('(prefers-color-scheme:dark)').onchange = event => {
+	meta.content = getComputedStyle(document.documentElement).getPropertyValue('--b');
+};
 
 onClick(
 	document.getElementById('home'),
@@ -964,8 +965,8 @@ onClick(
 );
 
 // Make it possible to flash multiple times
-makeFlashReset(green);
-makeFlashReset(red);
+makeFlashReset(a);
+makeFlashReset(r);
 
 // When a tab is opened, close the others; remove in March 2027 and use name in HTML
 if ('name' in HTMLDetailsElement.prototype) {
@@ -1049,7 +1050,7 @@ if ('showPicker' in HTMLSelectElement.prototype) {
 		sort(setupEnigma.criteria, c => c.id);
 		setupEnigma.indexes = setupEnigma.criteria.map(c => c.index);
 		{
-			let data = setupEnigma.criteria.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
+			let data = setupEnigma.criteria.reduce((n, c) => n << 8n | BigInt(c.id), 0n);
 			data = encrypt(data, setupEnigma.criteria.length, false);
 			setupEnigma.id = data.toString(16).toUpperCase().padStart(setupEnigma.criteria.length * 2, '0');
 		}
@@ -1146,7 +1147,7 @@ if ('showPicker' in HTMLSelectElement.prototype) {
 		addClasses(document.documentElement, 'progress');
 		// Switch button
 		hide(this.elements.generate_button);
-		show(spinner);
+		show(o);
 		getSelection().empty();
 		show(this.elements.cancel_button);
 		this.elements.cancel_button.focus();
@@ -1282,10 +1283,10 @@ document.forms.question_form.onsubmit = function(event) {
 		}
 		const td = create('td');
 		if (enigma.criteria[this.elements.verifier.selectedIndex].accepts[code]) {
-			animate(green, 'flashes');
+			animate(a, 'flashes');
 			td.innerHTML = '<span class="green">✔</span>';
 		} else {
-			animate(red, 'flashes');
+			animate(r, 'flashes');
 			td.innerHTML = '<span class="red">✘</span>';
 		}
 		append(tr, create('td', this.elements.verifier.selectedOptions[0].innerText), td);

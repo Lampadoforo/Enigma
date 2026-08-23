@@ -22,6 +22,8 @@ jobs:
             if [ ${branch} != ${{ github.ref_name }} ]; then
               mkdir "_site/${branch}/"
               wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
+              readonly logo=$(grep -Eo '[A-Za-z0-9\-_]{4}\.png' "_site/${branch}/index.xhtml")
+              wget -P "_site/${branch}/" "https://lampadoforo.github.io/Enigma/${branch}/${logo}"
             fi
           done
           cp _site/main/* _site/
