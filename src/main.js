@@ -1,5 +1,11 @@
 'use strict';
 
+// Return the char corresponding to the codepoint of the first character of a string plus a value
+const charSum = (c, n) => String.fromCodePoint(c.codePointAt(0) + n);
+
+// Return the difference of the codepoints of the first character of two strings
+const charDiff = (a, b) => a.codePointAt(0) - b.codePointAt(0);
+
 // Create a new array of specified length; optionally populates it using a function taking the index as a parameter
 const newArray = (length, func) => Array.from({length}, func && ((_, i) => func(i)));
 
@@ -11,9 +17,23 @@ const mapInPlace = (array, func) => {
 	return array;
 };
 
+// Sort an array using a score function
+const sort = (array, func = x => x) => array.sort((a, b) => func(a) - func(b));
+
+// Convert the solution from a number (from 0 to 124) to a string (from '111' to '555')
+const convertSolution = solution => {
+	const digits = newArray(3);
+	for (let i = 2; i >= 0; i -= 1) {
+		digits[i] = solution % 5;
+		solution = (solution - digits[i]) / 5;
+		digits[i] += 1;
+	}
+	return digits.join('');
+};
+
 // A round of encryption; see An Enciphering Scheme Based on a Card Shuffle (2012) by Hoang, Morris, and Rogaway
-const swapOrNot = (x, keys, max) => {
-	const xp = keys[0] & max ^ x;
+const swapOrNot = (x, keys, mask) => {
+	const xp = keys[0] & mask ^ x;
 	let lx = keys[1] & (x > xp ? x : xp);
 	let result = 0n;
 	while (lx) {
@@ -29,11 +49,31 @@ const addClasses = (element, ...classes) => {
 	return element;
 };
 
-// Create an HTML element with chosen tag and optionally inner HTML
-const create = (tag, html) => {
+const animate = (element, animation) => {
+	const animations = element.getAnimations();
+	if (animations.length) {
+		animations[0].cancel();
+		animations[0].play();
+	} else {
+		addClasses(element, animation);
+	}
+};
+
+// Remove flash class on animation end
+const makeFlashReset = element => {
+	element.onanimationend = function() {
+		this.classList.remove('flashes');
+	};
+};
+
+// Create an HTML element with chosen tag and optionally inner HTML and classes
+const create = (tag, html, ...classes) => {
 	const element = document.createElement(tag);
 	if (html) {
 		element.innerHTML = html;
+		if (classes.length) {
+			addClasses(element, ...classes);
+		}
 	}
 	return element;
 };
@@ -59,11 +99,8 @@ const onClick = (element, left, right) => {
 	return element;
 };
 
-// Show an element by removing the 'hidden' class; optionally add an animation
-const show = (element, animation) => {
-	if (animation) {
-		addClasses(element, animation);
-	}
+// Show an element by removing the 'hidden' class
+const show = element => {
 	element.classList.remove('hidden');
 	return element;
 };
@@ -113,28 +150,19 @@ const choose = (element, array) => {
 	return 1;
 };
 
-// Apply color to an element; -1 is red, 0 is white, 1 is green; optionally flashes it; return n === 1
-const color = (element, n, flash) => {
+// Apply color to an element; -1 is red, 0 is white, 1 is green; return n === 1
+const color = (element, n) => {
 	switch (n) {
 		case -1:
 			element.classList.remove('green');
 			addClasses(element, 'red');
-			if (flash) {
-				addClasses(element, 'flashes_red');
-			}
 			return false;
 		case 0:
 			element.classList.remove('green', 'red');
-			if (flash) {
-				addClasses(element, 'flashes');
-			}
 			return false;
 		case 1:
 			element.classList.remove('red');
 			addClasses(element, 'green');
-			if (flash) {
-				addClasses(element, 'flashes_green');
-			}
 			return true;
 		// Should not happen
 		default:
@@ -142,321 +170,321 @@ const color = (element, n, flash) => {
 	}
 };
 
-// Remove animation class on animation end
-const makeAnimationReset = element => {
-	element.onanimationend = function() {
-		this.classList.remove('flashes_green', 'flashes_red');
-	};
-};
-
-const allCriteria = [];
-// Contains the criteria of the verifiers made of mutually exclusive criteria
+// The criteria of the easy verifier
 const easyCriteria = [];
 
-class Criterion {
-	constructor(func, description) {
-		this.description = description
+const allCriteria = [];
+
+const newCriterion = (func, description) => {
+	const criterion = {
+		// Contains only accepted codes
+		accepted: [],
+		// Contains a boolean for each possible code
+		accepts: new Array(5 * 5 * 5),
+		description: description
 			.replace(/</gu, '&lt;')
 			.replace(/>/gu, '&gt;')
-			.replace(/[xyz]/gu, '<var class="$&">$&</var>');
-		// Contains a boolean for each possible code
-		this.accepts = newArray(5 * 5 * 5);
-		// Contains only accepted codes
-		this.accepted = [];
+			.replace(/[xyz]/gu, '<var class="$&">$&</var>'),
+		id: allCriteria.length,
 		// Contains only rejected codes
-		this.rejected = [];
-		for (let i = 0, x = 1; x <= 5; x += 1) {
-			for (let y = 1; y <= 5; y += 1) {
-				for (let z = 1; z <= 5; i += 1, z += 1) {
-					this.accepts[i] = func(x, y, z);
-					(this.accepts[i] ? this.accepted : this.rejected).push(i);
-				}
+		rejected: [],
+	};
+	for (let i = 0, x = 1; x <= 5; x += 1) {
+		for (let y = 1; y <= 5; y += 1) {
+			for (let z = 1; z <= 5; i += 1, z += 1) {
+				criterion.accepts[i] = func(x, y, z);
+				(criterion.accepts[i] ? criterion.accepted : criterion.rejected).push(i);
 			}
 		}
-		this.id = allCriteria.length;
-		allCriteria.push(this);
 	}
-}
+	allCriteria.push(criterion);
+	return criterion;
+};
+
+// The verifiers made of mutually exclusive criteria
+const easyVerifiers = [
+	[
+		newCriterion((x, y, z) => x === 1, 'x=1'),
+		newCriterion((x, y, z) => x > 1, 'x>1'),
+	],
+	[
+		newCriterion((x, y, z) => x < 3, 'x<3'),
+		newCriterion((x, y, z) => x === 3, 'x=3'),
+		newCriterion((x, y, z) => x > 3, 'x>3'),
+	],
+	[
+		newCriterion((x, y, z) => y < 3, 'y<3'),
+		newCriterion((x, y, z) => y === 3, 'y=3'),
+		newCriterion((x, y, z) => y > 3, 'y>3'),
+	],
+	[
+		newCriterion((x, y, z) => y < 4, 'y<4'),
+		newCriterion((x, y, z) => y === 4, 'y=4'),
+		newCriterion((x, y, z) => y > 4, 'y>4'),
+	],
+	[
+		newCriterion((x, y, z) => x % 2 === 0, 'x è pari'),
+		newCriterion((x, y, z) => x % 2 === 1, 'x è dispari'),
+	],
+	[
+		newCriterion((x, y, z) => y % 2 === 0, 'y è pari'),
+		newCriterion((x, y, z) => y % 2 === 1, 'y è dispari'),
+	],
+	[
+		newCriterion((x, y, z) => z % 2 === 0, 'z è pari'),
+		newCriterion((x, y, z) => z % 2 === 1, 'z è dispari'),
+	],
+	[
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'Nessun 1'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'Un 1'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'Due 1'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 3, 'Tre 1'),
+	],
+	[
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'Nessun 3'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'Un 3'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'Due 3'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 3, 'Tre 3'),
+	],
+	[
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'Nessun 4'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'Un 4'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'Due 4'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 3, 'Tre 4'),
+	],
+	[
+		newCriterion((x, y, z) => x < y, 'x<y'),
+		newCriterion((x, y, z) => x === y, 'x=y'),
+		newCriterion((x, y, z) => x > y, 'x>y'),
+	],
+	[
+		newCriterion((x, y, z) => x < z, 'x<z'),
+		newCriterion((x, y, z) => x === z, 'x=z'),
+		newCriterion((x, y, z) => x > z, 'x>z'),
+	],
+	[
+		newCriterion((x, y, z) => y < z, 'y<z'),
+		newCriterion((x, y, z) => y === z, 'y=z'),
+		newCriterion((x, y, z) => y > z, 'y>z'),
+	],
+	[
+		newCriterion((x, y, z) => x < y && x < z, 'x<y e x<z'),
+		newCriterion((x, y, z) => y < x && y < z, 'y<x e y<z'),
+		newCriterion((x, y, z) => z < x && z < y, 'z<x e z<y'),
+	],
+	[
+		newCriterion((x, y, z) => x > y && x > z, 'x>y e x>z'),
+		newCriterion((x, y, z) => y > x && y > z, 'y>x e y>z'),
+		newCriterion((x, y, z) => z > x && z > y, 'z>x e z>y'),
+	],
+	[
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 < 2, 'Almeno due cifre pari'),
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 >= 2, 'Almeno due cifre dispari'),
+	],
+	[
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 === 3, 'Nessuna cifra pari'),
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 === 2, 'Una cifra pari'),
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 === 1, 'Due cifre pari'),
+		newCriterion((x, y, z) => x % 2 + y % 2 + z % 2 === 0, 'Tre cifre pari'),
+	],
+	[
+		newCriterion((x, y, z) => (x + y + z) % 2 === 0, 'x+y+z è pari'),
+		newCriterion((x, y, z) => (x + y + z) % 2 === 1, 'x+y+z è dispari'),
+	],
+	[
+		newCriterion((x, y, z) => x + y < 6, 'x+y<6'),
+		newCriterion((x, y, z) => x + y === 6, 'x+y=6'),
+		newCriterion((x, y, z) => x + y > 6, 'x+y>6'),
+	],
+	[
+		newCriterion((x, y, z) => (x === y) + (x === z) + (y === z) === 3, 'x=y=z'),
+		newCriterion((x, y, z) => (x === y) + (x === z) + (y === z) === 1, 'Due cifre uguali e una diversa'),
+		newCriterion((x, y, z) => (x === y) + (x === z) + (y === z) === 0, 'Tre cifre diverse'),
+	],
+	[
+		newCriterion((x, y, z) => (x === y) + (x === z) + (y === z) !== 1, 'x=y=z o tre cifre diverse'),
+		newCriterion((x, y, z) => (x === y) + (x === z) + (y === z) === 1, 'Due cifre uguali e una diversa'),
+	],
+	[
+		newCriterion((x, y, z) => x < y && y < z, 'x<y<z'),
+		newCriterion((x, y, z) => x > y && y > z, 'x>y>z'),
+		newCriterion((x, y, z) => !(x < y && y < z || x > y && y > z), 'Né x<y<z né x>y>z'),
+	],
+	[
+		newCriterion((x, y, z) => x + y + z < 6, 'x+y+z<6'),
+		newCriterion((x, y, z) => x + y + z === 6, 'x+y+z=6'),
+		newCriterion((x, y, z) => x + y + z > 6, 'x+y+z>6'),
+	],
+	[
+		newCriterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 0, 'x+1≠y e y+1≠z'),
+		newCriterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 1, 'x+2=y+1≠z o x+2≠y+1=z'),
+		newCriterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 2, 'x+2=y+1=z'),
+	],
+	[
+		newCriterion((x, y, z) => (x + 1 === y || x === y + 1) + (y + 1 === z || y === z + 1) === 0, 'x±1≠y e y±1≠z'),
+		newCriterion((x, y, z) => (x + 1 === y || x === y + 1) + (y + 1 === z || y === z + 1) === 1, 'O x±1=y o y±1=z'),
+		newCriterion((x, y, z) => x + 1 === y && y + 1 === z || x === y + 1 && y === z + 1, 'x+2=y+1=z o x=y+1=z+2'),
+	],
+];
 
 const allVerifiers = [
+	...easyVerifiers,
 	[
-		new Criterion((x, y, z) => x === 1, 'x = 1'),
-		new Criterion((x, y, z) => x > 1, 'x > 1'),
+		newCriterion((x, y, z) => x < 3, 'x<3'),
+		newCriterion((x, y, z) => y < 3, 'y<3'),
+		newCriterion((x, y, z) => z < 3, 'z<3'),
 	],
 	[
-		new Criterion((x, y, z) => x < 3, 'x < 3'),
-		new Criterion((x, y, z) => x === 3, 'x = 3'),
-		new Criterion((x, y, z) => x > 3, 'x > 3'),
+		newCriterion((x, y, z) => x < 4, 'x<4'),
+		newCriterion((x, y, z) => y < 4, 'y<4'),
+		newCriterion((x, y, z) => z < 4, 'z<4'),
 	],
 	[
-		new Criterion((x, y, z) => y < 3, 'y < 3'),
-		new Criterion((x, y, z) => y === 3, 'y = 3'),
-		new Criterion((x, y, z) => y > 3, 'y > 3'),
+		newCriterion((x, y, z) => x === 1, 'x=1'),
+		newCriterion((x, y, z) => y === 1, 'y=1'),
+		newCriterion((x, y, z) => z === 1, 'z=1'),
 	],
 	[
-		new Criterion((x, y, z) => y < 4, 'y < 4'),
-		new Criterion((x, y, z) => y === 4, 'y = 4'),
-		new Criterion((x, y, z) => y > 4, 'y > 4'),
+		newCriterion((x, y, z) => x === 3, 'x=3'),
+		newCriterion((x, y, z) => y === 3, 'y=3'),
+		newCriterion((x, y, z) => z === 3, 'z=3'),
 	],
 	[
-		new Criterion((x, y, z) => x % 2 === 0, 'x è pari'),
-		new Criterion((x, y, z) => x % 2 === 1, 'x è dispari'),
+		newCriterion((x, y, z) => x === 4, 'x=4'),
+		newCriterion((x, y, z) => y === 4, 'y=4'),
+		newCriterion((x, y, z) => z === 4, 'z=4'),
 	],
 	[
-		new Criterion((x, y, z) => y % 2 === 0, 'y è pari'),
-		new Criterion((x, y, z) => y % 2 === 1, 'y è dispari'),
+		newCriterion((x, y, z) => x > 1, 'x>1'),
+		newCriterion((x, y, z) => y > 1, 'y>1'),
+		newCriterion((x, y, z) => z > 1, 'z>1'),
 	],
 	[
-		new Criterion((x, y, z) => z % 2 === 0, 'z è pari'),
-		new Criterion((x, y, z) => z % 2 === 1, 'z è dispari'),
+		newCriterion((x, y, z) => x > 3, 'x>3'),
+		newCriterion((x, y, z) => y > 3, 'y>3'),
+		newCriterion((x, y, z) => z > 3, 'z>3'),
 	],
 	[
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'nessun 1'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'un 1'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'due 1'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 3, 'tre 1'),
+		newCriterion((x, y, z) => x % 2 === 0, 'x è pari'),
+		newCriterion((x, y, z) => x % 2 === 1, 'x è dispari'),
+		newCriterion((x, y, z) => y % 2 === 0, 'y è pari'),
+		newCriterion((x, y, z) => y % 2 === 1, 'y è dispari'),
+		newCriterion((x, y, z) => z % 2 === 0, 'z è pari'),
+		newCriterion((x, y, z) => z % 2 === 1, 'z è dispari'),
 	],
 	[
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'nessun 3'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'un 3'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'due 3'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 3, 'tre 3'),
+		newCriterion((x, y, z) => x <= y && x <= z, 'x≤y e x≤z'),
+		newCriterion((x, y, z) => y <= x && y <= z, 'y≤x e y≤z'),
+		newCriterion((x, y, z) => z <= x && z <= y, 'z≤x e z≤y'),
 	],
 	[
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'nessun 4'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'un 4'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'due 4'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 3, 'tre 4'),
+		newCriterion((x, y, z) => x >= y && x >= z, 'x≥y e x≥z'),
+		newCriterion((x, y, z) => y >= x && y >= z, 'y≥x e y≥z'),
+		newCriterion((x, y, z) => z >= x && z >= y, 'z≥x e z≥y'),
 	],
 	[
-		new Criterion((x, y, z) => x < y, 'x < y'),
-		new Criterion((x, y, z) => x === y, 'x = y'),
-		new Criterion((x, y, z) => x > y, 'x > y'),
+		newCriterion((x, y, z) => (x + y + z) % 3 === 0, 'x+y+z è un multiplo di 3'),
+		newCriterion((x, y, z) => (x + y + z) % 4 === 0, 'x+y+z è un multiplo di 4'),
+		newCriterion((x, y, z) => (x + y + z) % 5 === 0, 'x+y+z è un multiplo di 5'),
 	],
 	[
-		new Criterion((x, y, z) => x < z, 'x < z'),
-		new Criterion((x, y, z) => x === z, 'x = z'),
-		new Criterion((x, y, z) => x > z, 'x > z'),
+		newCriterion((x, y, z) => x + y === 4, 'x+y=4'),
+		newCriterion((x, y, z) => x + z === 4, 'x+z=4'),
+		newCriterion((x, y, z) => y + z === 4, 'y+z=4'),
 	],
 	[
-		new Criterion((x, y, z) => y < z, 'y < z'),
-		new Criterion((x, y, z) => y === z, 'y = z'),
-		new Criterion((x, y, z) => y > z, 'y > z'),
+		newCriterion((x, y, z) => x + y === 6, 'x+y=6'),
+		newCriterion((x, y, z) => x + z === 6, 'x+z=6'),
+		newCriterion((x, y, z) => y + z === 6, 'y+z=6'),
 	],
 	[
-		new Criterion((x, y, z) => x < y && x < z, 'x < y e x < z'),
-		new Criterion((x, y, z) => y < x && y < z, 'y < x e y < z'),
-		new Criterion((x, y, z) => z < x && z < y, 'z < x e z < y'),
+		newCriterion((x, y, z) => x === 1, 'x=1'),
+		newCriterion((x, y, z) => x > 1, 'x>1'),
+		newCriterion((x, y, z) => y === 1, 'y=1'),
+		newCriterion((x, y, z) => y > 1, 'y>1'),
+		newCriterion((x, y, z) => z === 1, 'z=1'),
+		newCriterion((x, y, z) => z > 1, 'z>1'),
 	],
 	[
-		new Criterion((x, y, z) => x > y && x > z, 'x > y e x > z'),
-		new Criterion((x, y, z) => y > x && y > z, 'y > x e y > z'),
-		new Criterion((x, y, z) => z > x && z > y, 'z > x e z > y'),
+		newCriterion((x, y, z) => x < 3, 'x<3'),
+		newCriterion((x, y, z) => x === 3, 'x=3'),
+		newCriterion((x, y, z) => x > 3, 'x>3'),
+		newCriterion((x, y, z) => y < 3, 'y<3'),
+		newCriterion((x, y, z) => y === 3, 'y=3'),
+		newCriterion((x, y, z) => y > 3, 'y>3'),
+		newCriterion((x, y, z) => z < 3, 'z<3'),
+		newCriterion((x, y, z) => z === 3, 'z=3'),
+		newCriterion((x, y, z) => z > 3, 'z>3'),
 	],
 	[
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 < 2, 'almeno due cifre pari'),
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 >= 2, 'almeno due cifre dispari'),
+		newCriterion((x, y, z) => x < 4, 'x<4'),
+		newCriterion((x, y, z) => x === 4, 'x=4'),
+		newCriterion((x, y, z) => x > 4, 'x>4'),
+		newCriterion((x, y, z) => y < 4, 'y<4'),
+		newCriterion((x, y, z) => y === 4, 'y=4'),
+		newCriterion((x, y, z) => y > 4, 'y>4'),
+		newCriterion((x, y, z) => z < 4, 'z<4'),
+		newCriterion((x, y, z) => z === 4, 'z=4'),
+		newCriterion((x, y, z) => z > 4, 'z>4'),
 	],
 	[
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 === 3, 'nessuna cifra pari'),
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 === 2, 'una cifra pari'),
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 === 1, 'due cifre pari'),
-		new Criterion((x, y, z) => x % 2 + y % 2 + z % 2 === 0, 'tre cifre pari'),
+		newCriterion((x, y, z) => x < y && x < z, 'x<y e x<z'),
+		newCriterion((x, y, z) => x > y && x > z, 'x>y e x>z'),
+		newCriterion((x, y, z) => y < x && y < z, 'y<x e y<z'),
+		newCriterion((x, y, z) => y > x && y > z, 'y>x e y>z'),
+		newCriterion((x, y, z) => z < x && z < y, 'z<x e z<y'),
+		newCriterion((x, y, z) => z > x && z > y, 'z>x e z>y'),
 	],
 	[
-		new Criterion((x, y, z) => (x + y + z) % 2 === 0, 'x+y+z è pari'),
-		new Criterion((x, y, z) => (x + y + z) % 2 === 1, 'x+y+z è dispari'),
+		newCriterion((x, y, z) => x < y, 'x<y'),
+		newCriterion((x, y, z) => x < z, 'x<z'),
+		newCriterion((x, y, z) => x === y, 'x=y'),
+		newCriterion((x, y, z) => x === z, 'x=z'),
+		newCriterion((x, y, z) => x > y, 'x>y'),
+		newCriterion((x, y, z) => x > z, 'x>z'),
 	],
 	[
-		new Criterion((x, y, z) => x + y < 6, 'x+y < 6'),
-		new Criterion((x, y, z) => x + y === 6, 'x+y = 6'),
-		new Criterion((x, y, z) => x + y > 6, 'x+y > 6'),
+		newCriterion((x, y, z) => y < x, 'y<x'),
+		newCriterion((x, y, z) => y < z, 'y<z'),
+		newCriterion((x, y, z) => y === x, 'y=x'),
+		newCriterion((x, y, z) => y === z, 'y=z'),
+		newCriterion((x, y, z) => y > x, 'y>x'),
+		newCriterion((x, y, z) => y > z, 'y>z'),
 	],
 	[
-		new Criterion((x, y, z) => (x === y) + (x === z) + (y === z) === 3, 'x = y = z'),
-		new Criterion((x, y, z) => (x === y) + (x === z) + (y === z) === 1, 'due cifre uguali fra loro e una diversa'),
-		new Criterion((x, y, z) => (x === y) + (x === z) + (y === z) === 0, 'tre cifre diverse fra loro'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'Nessun 1'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'Nessun 3'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'Un 1'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'Un 3'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'Due 1'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'Due 3'),
 	],
 	[
-		new Criterion((x, y, z) => (x === y) + (x === z) + (y === z) !== 1, 'x = y = z o tre cifre diverse fra loro'),
-		new Criterion((x, y, z) => (x === y) + (x === z) + (y === z) === 1, 'due cifre uguali fra loro e una diversa'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'Nessun 3'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'Nessun 4'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'Un 3'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'Un 4'),
+		newCriterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'Due 3'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'Due 4'),
 	],
 	[
-		new Criterion((x, y, z) => x < y && y < z, 'x < y < z'),
-		new Criterion((x, y, z) => x > y && y > z, 'x > y > z'),
-		new Criterion((x, y, z) => !(x < y && y < z || x > y && y > z), 'né x < y < z né x > y > z'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'Nessun 1'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'Nessun 4'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'Un 1'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'Un 4'),
+		newCriterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'Due 1'),
+		newCriterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'Due 4'),
 	],
 	[
-		new Criterion((x, y, z) => x + y + z < 6, 'x+y+z < 6'),
-		new Criterion((x, y, z) => x + y + z === 6, 'x+y+z = 6'),
-		new Criterion((x, y, z) => x + y + z > 6, 'x+y+z > 6'),
-	],
-	[
-		new Criterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 0, 'x+1 ≠ y e y+1 ≠ z'),
-		new Criterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 1, 'x+2 = y+1 ≠ z oppure x+2 ≠ y+1 = z'),
-		new Criterion((x, y, z) => (x + 1 === y) + (y + 1 === z) === 2, 'x+2 = y+1 = z'),
-	],
-	[
-		new Criterion((x, y, z) => (x + 1 === y || x === y + 1) + (y + 1 === z || y === z + 1) === 0, 'x±1 ≠ y e y±1 ≠ z'),
-		new Criterion((x, y, z) => (x + 1 === y || x === y + 1) + (y + 1 === z || y === z + 1) === 1, 'o x±1 = y o y±1 = z'),
-		new Criterion((x, y, z) => x + 1 === y && y + 1 === z || x === y + 1 && y === z + 1, 'x+2 = y+1 = z o x = y+1 = z+2'),
-	],
-	[
-		new Criterion((x, y, z) => x < 3, 'x < 3'),
-		new Criterion((x, y, z) => y < 3, 'y < 3'),
-		new Criterion((x, y, z) => z < 3, 'z < 3'),
-	],
-	[
-		new Criterion((x, y, z) => x < 4, 'x < 4'),
-		new Criterion((x, y, z) => y < 4, 'y < 4'),
-		new Criterion((x, y, z) => z < 4, 'z < 4'),
-	],
-	[
-		new Criterion((x, y, z) => x === 1, 'x = 1'),
-		new Criterion((x, y, z) => y === 1, 'y = 1'),
-		new Criterion((x, y, z) => z === 1, 'z = 1'),
-	],
-	[
-		new Criterion((x, y, z) => x === 3, 'x = 3'),
-		new Criterion((x, y, z) => y === 3, 'y = 3'),
-		new Criterion((x, y, z) => z === 3, 'z = 3'),
-	],
-	[
-		new Criterion((x, y, z) => x === 4, 'x = 4'),
-		new Criterion((x, y, z) => y === 4, 'y = 4'),
-		new Criterion((x, y, z) => z === 4, 'z = 4'),
-	],
-	[
-		new Criterion((x, y, z) => x > 1, 'x > 1'),
-		new Criterion((x, y, z) => y > 1, 'y > 1'),
-		new Criterion((x, y, z) => z > 1, 'z > 1'),
-	],
-	[
-		new Criterion((x, y, z) => x > 3, 'x > 3'),
-		new Criterion((x, y, z) => y > 3, 'y > 3'),
-		new Criterion((x, y, z) => z > 3, 'z > 3'),
-	],
-	[
-		new Criterion((x, y, z) => x % 2 === 0, 'x è pari'),
-		new Criterion((x, y, z) => x % 2 === 1, 'x è dispari'),
-		new Criterion((x, y, z) => y % 2 === 0, 'y è pari'),
-		new Criterion((x, y, z) => y % 2 === 1, 'y è dispari'),
-		new Criterion((x, y, z) => z % 2 === 0, 'z è pari'),
-		new Criterion((x, y, z) => z % 2 === 1, 'z è dispari'),
-	],
-	[
-		new Criterion((x, y, z) => x <= y && x <= z, 'x ≤ y e x ≤ z'),
-		new Criterion((x, y, z) => y <= x && y <= z, 'y ≤ x e y ≤ z'),
-		new Criterion((x, y, z) => z <= x && z <= y, 'z ≤ x e z ≤ y'),
-	],
-	[
-		new Criterion((x, y, z) => x >= y && x >= z, 'x ≥ y e x ≥ z'),
-		new Criterion((x, y, z) => y >= x && y >= z, 'y ≥ x e y ≥ z'),
-		new Criterion((x, y, z) => z >= x && z >= y, 'z ≥ x e z ≥ y'),
-	],
-	[
-		new Criterion((x, y, z) => (x + y + z) % 3 === 0, 'x+y+z è un multiplo di 3'),
-		new Criterion((x, y, z) => (x + y + z) % 4 === 0, 'x+y+z è un multiplo di 4'),
-		new Criterion((x, y, z) => (x + y + z) % 5 === 0, 'x+y+z è un multiplo di 5'),
-	],
-	[
-		new Criterion((x, y, z) => x + y === 4, 'x+y = 4'),
-		new Criterion((x, y, z) => x + z === 4, 'x+z = 4'),
-		new Criterion((x, y, z) => y + z === 4, 'y+z = 4'),
-	],
-	[
-		new Criterion((x, y, z) => x + y === 6, 'x+y = 6'),
-		new Criterion((x, y, z) => x + z === 6, 'x+z = 6'),
-		new Criterion((x, y, z) => y + z === 6, 'y+z = 6'),
-	],
-	[
-		new Criterion((x, y, z) => x === 1, 'x = 1'),
-		new Criterion((x, y, z) => x > 1, 'x > 1'),
-		new Criterion((x, y, z) => y === 1, 'y = 1'),
-		new Criterion((x, y, z) => y > 1, 'y > 1'),
-		new Criterion((x, y, z) => z === 1, 'z = 1'),
-		new Criterion((x, y, z) => z > 1, 'z > 1'),
-	],
-	[
-		new Criterion((x, y, z) => x < 3, 'x < 3'),
-		new Criterion((x, y, z) => x === 3, 'x = 3'),
-		new Criterion((x, y, z) => x > 3, 'x > 3'),
-		new Criterion((x, y, z) => y < 3, 'y < 3'),
-		new Criterion((x, y, z) => y === 3, 'y = 3'),
-		new Criterion((x, y, z) => y > 3, 'y > 3'),
-		new Criterion((x, y, z) => z < 3, 'z < 3'),
-		new Criterion((x, y, z) => z === 3, 'z = 3'),
-		new Criterion((x, y, z) => z > 3, 'z > 3'),
-	],
-	[
-		new Criterion((x, y, z) => x < 4, 'x < 4'),
-		new Criterion((x, y, z) => x === 4, 'x = 4'),
-		new Criterion((x, y, z) => x > 4, 'x > 4'),
-		new Criterion((x, y, z) => y < 4, 'y < 4'),
-		new Criterion((x, y, z) => y === 4, 'y = 4'),
-		new Criterion((x, y, z) => y > 4, 'y > 4'),
-		new Criterion((x, y, z) => z < 4, 'z < 4'),
-		new Criterion((x, y, z) => z === 4, 'z = 4'),
-		new Criterion((x, y, z) => z > 4, 'z > 4'),
-	],
-	[
-		new Criterion((x, y, z) => x < y && x < z, 'x < y e x < z'),
-		new Criterion((x, y, z) => x > y && x > z, 'x > y e x > z'),
-		new Criterion((x, y, z) => y < x && y < z, 'y < x e y < z'),
-		new Criterion((x, y, z) => y > x && y > z, 'y > x e y > z'),
-		new Criterion((x, y, z) => z < x && z < y, 'z < x e z < y'),
-		new Criterion((x, y, z) => z > x && z > y, 'z > x e z > y'),
-	],
-	[
-		new Criterion((x, y, z) => x < y, 'x < y'),
-		new Criterion((x, y, z) => x < z, 'x < z'),
-		new Criterion((x, y, z) => x === y, 'x = y'),
-		new Criterion((x, y, z) => x === z, 'x = z'),
-		new Criterion((x, y, z) => x > y, 'x > y'),
-		new Criterion((x, y, z) => x > z, 'x > z'),
-	],
-	[
-		new Criterion((x, y, z) => y < x, 'y < x'),
-		new Criterion((x, y, z) => y < z, 'y < z'),
-		new Criterion((x, y, z) => y === x, 'y = x'),
-		new Criterion((x, y, z) => y === z, 'y = z'),
-		new Criterion((x, y, z) => y > x, 'y > x'),
-		new Criterion((x, y, z) => y > z, 'y > z'),
-	],
-	[
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'nessun 1'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'nessun 3'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'un 1'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'un 3'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'due 1'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'due 3'),
-	],
-	[
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 0, 'nessun 3'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'nessun 4'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 1, 'un 3'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'un 4'),
-		new Criterion((x, y, z) => (x === 3) + (y === 3) + (z === 3) === 2, 'due 3'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'due 4'),
-	],
-	[
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 0, 'nessun 1'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 0, 'nessun 4'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 1, 'un 1'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 1, 'un 4'),
-		new Criterion((x, y, z) => (x === 1) + (y === 1) + (z === 1) === 2, 'due 1'),
-		new Criterion((x, y, z) => (x === 4) + (y === 4) + (z === 4) === 2, 'due 4'),
-	],
-	[
-		new Criterion((x, y, z) => x < y, 'x < y'),
-		new Criterion((x, y, z) => x === y, 'x = y'),
-		new Criterion((x, y, z) => x > y, 'x > y'),
-		new Criterion((x, y, z) => x < z, 'x < z'),
-		new Criterion((x, y, z) => x === z, 'x = z'),
-		new Criterion((x, y, z) => x > z, 'x > z'),
-		new Criterion((x, y, z) => y < z, 'y < z'),
-		new Criterion((x, y, z) => y === z, 'y = z'),
-		new Criterion((x, y, z) => y > z, 'y > z'),
+		newCriterion((x, y, z) => x < y, 'x<y'),
+		newCriterion((x, y, z) => x === y, 'x=y'),
+		newCriterion((x, y, z) => x > y, 'x>y'),
+		newCriterion((x, y, z) => x < z, 'x<z'),
+		newCriterion((x, y, z) => x === z, 'x=z'),
+		newCriterion((x, y, z) => x > z, 'x>z'),
+		newCriterion((x, y, z) => y < z, 'y<z'),
+		newCriterion((x, y, z) => y === z, 'y=z'),
+		newCriterion((x, y, z) => y > z, 'y>z'),
 	],
 ];
 
@@ -468,8 +496,7 @@ for (let i = 0; i < allVerifiers.length; i += 1) {
 		// For each criterion with lower id, indicates whether it can be in the same enigma as this
 		a.compatible = newArray(a.id, k => {
 			const b = allCriteria[k];
-			// If a and b are part of the same verifier, they are not compatible
-			return b.verifier !== i && [
+			return [
 				// If the intersection of accepted codes is empty, they are not compatible
 				a.accepted.length < b.accepted.length ? {
 					array: a.accepted,
@@ -489,23 +516,64 @@ for (let i = 0; i < allVerifiers.length; i += 1) {
 				},
 			].every(({array, criterion}) => array.some(c => criterion.accepts[c]));
 		});
-		if (i < 25) {
+		if (i < easyVerifiers.length) {
 			easyCriteria.push(a);
 		}
 	}
 }
 
+// For each verifier, contains an array of verifier indexes that cannot be used as decoys for that verifier
+const incompatibleDecoys = allVerifiers.map(() => []);
+
+for (let i = 0; i < allVerifiers.length; i += 1) {
+	for (let j = 0; j < i; j += 1) {
+		// If i and j contain an identical criterion
+		if (allVerifiers[i].some(a => allVerifiers[j].some(b => {
+			// Identical criteria are not compatible
+			if (a.accepted.length !== b.accepted.length || b.compatible[a]) {
+				return false;
+			}
+			let aa;
+			let bb;
+			if (a.accepted.length < a.rejected.length) {
+				aa = a.accepted;
+				bb = b.accepted;
+			} else {
+				aa = a.rejected;
+				bb = b.rejected;
+			}
+			for (let k = 0; k < aa.length; k += 1) {
+				if (aa[k] !== bb[k]) {
+					return false;
+				}
+			}
+			return true;
+		}))) {
+			incompatibleDecoys[i].push(j);
+			incompatibleDecoys[j].push(i);
+		}
+	}
+	// Each criterion is identical to itself
+	incompatibleDecoys[i].push(i);
+}
+
 const canonical = document.querySelector('link[rel="canonical"]').href;
-const headers = [...document.getElementById('headers').children];
 const dialog = document.getElementById('dialog');
+const a = document.getElementById('a');
+const o = document.getElementById('o');
+const r = document.getElementById('r');
 const errors = [...document.getElementsByClassName('error')];
 const errorNoCriterion = document.getElementById('error_no_criterion');
+const errorIncompatible = document.getElementById('error_incompatible');
+const errorNotSorted = document.getElementById('error_not_sorted');
 const errorNoSolution = document.getElementById('error_no_solution');
 const errorNoUniqueSolution = document.getElementById('error_no_unique_solution');
 const errorRedundand = document.getElementById('error_redundand');
+const errorNoVerifier = document.getElementById('error_no_verifier');
+const tabs = [...document.getElementsByClassName('tab')];
 const play = document.getElementById('play');
 const link = document.getElementById('link');
-const copied = document.getElementById('copied');
+const copy = document.getElementById('copy');
 const verifiers = document.getElementById('verifiers');
 const questionsTable = document.getElementById('questions_table');
 const questionsTBody = document.getElementById('questions_tbody');
@@ -517,13 +585,11 @@ const showError = error => {
 	errors.forEach(hide);
 	show(error);
 	dialog.showModal();
+	return null;
 };
 
-// The criteria that make up the current enigma
-let criteria;
-
-// The solution of the current enigma
-let solution;
+// The current enigma
+let enigma;
 
 // The questions made for the current enigma
 let questions;
@@ -537,13 +603,18 @@ let turns;
 // The state of the columns of the solution; the table is colored using the minimum; -1 is red, 0 is white, 1 is green
 const colors = newArray(3);
 
-// Disable the question button if the code is not valid or the same question has already been made
+// If the game has ended
+let gameOver;
+
+// Check if a verifier has already been questioned with a code
+const hasBeenQuestioned = (c, v) => questions.some(({code, verifier}) => code === c.value && verifier === v);
+
+// Disable the question button if the game is over or the code is not valid or the same question has already been made
 const disableQuestionButtonIfCannotQuestion = () => {
 	const {elements} = document.forms.question_form;
 	const c = elements.code;
 	const v = elements.verifier.value;
-	const b = elements.question_button;
-	b.disabled = !c.validity.valid || questions.some(({code, verifier}) => code === c.value && verifier === v);
+	elements.question_button.disabled = gameOver || !c.validity.valid || hasBeenQuestioned(c, v);
 };
 
 // Append a new verifier to verifiers
@@ -553,16 +624,16 @@ const appendToVerifiers = (letter, verifier) => {
 		append(
 			create('fieldset'),
 			onClick(
-				addClasses(create('legend', letter), 'clickable'),
+				create('legend', letter, 'clickable'),
 				function() {
 					document.forms.question_form.elements.verifier.value = this.innerText;
 					disableQuestionButtonIfCannotQuestion();
 				},
 			),
 			append(
-				addClasses(create('ol'), 'criteria'),
+				addClasses(create('ul'), 'criteria'),
 				...verifier.map(c => onClick(
-					addClasses(create('li', c.description), 'clickable'),
+					create('li', c.description, 'clickable', 'guessable'),
 					function() {
 						if (this.classList.contains('clickable')) {
 							const parent = this.parentElement;
@@ -583,39 +654,40 @@ const appendToVerifiers = (letter, verifier) => {
 };
 
 // Set up variables and show the enigma
-const setup = (setupCriteria, setupSolution, setupId) => {
-	criteria = setupCriteria;
-	solution = newArray(3);
-	for (let i = 2, tmp = setupSolution; i >= 0; i -= 1) {
-		solution[i] = tmp % 5;
-		tmp = (tmp - solution[i]) / 5;
-		solution[i] += 1;
-	}
-	solution = solution.join('');
+const setup = (setupEnigma, doubles) => {
+	setupEnigma.solution = convertSolution(setupEnigma.solution);
+	// Set globals
+	enigma = setupEnigma;
 	questions = [];
 	lastCodeTd = null;
 	turns = 0;
 	colors.fill(0);
-	for (const header of headers) {
-		header.open = false;
+	gameOver = false;
+	// Close all tabs
+	for (const tab of tabs) {
+		tab.open = false;
 	}
-	link.href = `?e=${setupId}`;
-	link.innerText = setupId;
+	// Set link
+	link.href = `?enigma=${setupEnigma.id}`;
+	link.innerText = setupEnigma.id;
+	// Populate the verifiers <div> and the verifier <select>
 	verifiers.innerText = '';
 	document.forms.question_form.elements.verifier.innerText = '';
-	for (let i = 0; i < criteria.length; i += 1) {
-		const letter = String.fromCodePoint('A'.codePointAt(0) + i);
-		appendToVerifiers(letter, allVerifiers[criteria[i].verifier]);
+	for (let i = 0; i < setupEnigma.criteria.length; i += 1) {
+		const letter = charSum('A', i);
+		appendToVerifiers(letter, doubles ? doubles[i] : allVerifiers[setupEnigma.criteria[i].verifier]);
 		append(
 			document.forms.question_form.elements.verifier,
-			create('option', letter),
+			new Option(letter),
 		);
 	}
+	// Remove previous questions
 	document.forms.question_form.elements.code.value = '';
 	document.forms.question_form.elements.question_button.disabled = true;
 	hide(questionsTable);
 	questionsTBody.innerText = '';
 	color(solutionTable, 0);
+	// Clean solution table
 	for (const tr of solutionTBody.children) {
 		for (let i = 0; i < tr.children.length; i += 1) {
 			addClasses(tr.children[i], 'clickable');
@@ -623,15 +695,13 @@ const setup = (setupCriteria, setupSolution, setupId) => {
 		}
 	}
 	document.forms.verify_form.elements.verify_button.disabled = true;
+	// Hide victory or loss text
 	hide(document.forms.verify_form.elements.result);
-	show(play, 'flashes');
-	play.scrollIntoView({
-		behavior: 'smooth',
-	});
+	show(play);
 };
 
 // The keys used to encrypt and decrypt the id
-const keys = newArray(6 * 16 * 8, () => [
+const keys = newArray(6 * 14 * 8, () => [
 	0n,
 	0n,
 ]);
@@ -660,119 +730,284 @@ const keys = newArray(6 * 16 * 8, () => [
 	}
 }
 
-// Import an enigma using its id; used in the import tab, when clicking on links, and when the 'e' url parameter is set
-const importEnigma = importId => {
-	const importCriteria = newArray(importId.length / 2);
-	{
-		// Decrypt using swap-or-not
-		const max = (1n << BigInt(4 * importId.length)) - 1n;
-		let x = BigInt(`0x${importId}`);
-		for (let i = keys.length - 1; i >= 0; i -= 1) {
-			x = swapOrNot(x, keys[i], max);
+// Make a mask to encrypt only the used bits of data
+const makeMask = (length, double) => {
+	if (double) {
+		let mask = 0n;
+		for (let i = 0; i < length; i += 1) {
+			mask = mask << 16n | 0xFF3Fn;
 		}
-		// Take each byte and use it as an index in the criteria array
-		for (let i = 0; i < importCriteria.length; i += 1) {
-			const c = Number(x & 0xFFn);
-			if (c >= allCriteria.length) {
-				showError(errorNoCriterion);
-				return;
+		return mask;
+	}
+	return (1n << BigInt(8 * length)) - 1n;
+};
+
+const encrypt = (data, length, double) => {
+	const mask = makeMask(length, double);
+	const rounds = 6 * length * (double ? 14 : 8);
+	for (let i = 0; i < rounds; i += 1) {
+		data = swapOrNot(data, keys[i], mask);
+	}
+	return data;
+};
+
+const decrypt = (data, length, double) => {
+	const mask = makeMask(length, double);
+	for (let i = 6 * length * (double ? 14 : 8) - 1; i >= 0; i -= 1) {
+		data = swapOrNot(data, keys[i], mask);
+	}
+	return data;
+};
+
+// Convert from base64 to a BigInt
+const fromBase64 = c => {
+	if (c >= 'A' && c <= 'Z') {
+		return BigInt(charDiff(c, 'A'));
+	}
+	if (c >= 'a' && c <= 'z') {
+		return BigInt(charDiff(c, 'a') + 26);
+	}
+	if (c >= '0' && c <= '9') {
+		return BigInt(charDiff(c, '0') + 52);
+	}
+	if (c === '-') {
+		return 62n;
+	}
+	return 63n;
+};
+
+// Extract single criteria from id
+const importSingle = importId => {
+	if (!/^(?:[\dA-F]{2}){2,8}$/u.test(importId)) {
+		return null;
+	}
+	const length = importId.length / 2;
+	let data = decrypt(BigInt(`0x${importId}`), length, false);
+	const criteria = newArray(length);
+	for (let i = length - 1; i >= 0; i -= 1) {
+		{
+			const criterion = Number(data & 0xFFn);
+			if (criterion >= allCriteria.length) {
+				return showError(errorNoCriterion);
 			}
-			importCriteria[i] = allCriteria[c];
-			x >>= 8n;
+			criteria[i] = allCriteria[criterion];
+		}
+		data >>= 8n;
+		if (i < length - 1 && criteria[i].verifier > criteria[i + 1].verifier) {
+			return showError(errorNotSorted);
 		}
 	}
-	importCriteria.sort((a, b) => a.id - b.id);
-	let importSolution = null;
+	return {
+		criteria,
+		indexes: criteria.map(c => c.index),
+	};
+};
+
+// Extract double criteria from decrypted data
+const extractEnigmaFromData = (data, length) => {
+	const result = {
+		criteria: newArray(length),
+		doubles: newArray(length),
+		indexes: newArray(length),
+	};
+	{
+		let tmp = data;
+		let old;
+		for (let i = length - 1; i >= 0; i -= 1) {
+			const decoy = Number(tmp & 0xFFn);
+			if (decoy >= allVerifiers.length) {
+				return showError(errorNoVerifier);
+			}
+			tmp >>= 8n;
+			{
+				const criterion = Number(tmp & 0xFFn);
+				if (criterion >= allCriteria.length) {
+					return showError(errorNoCriterion);
+				}
+				result.criteria[i] = allCriteria[criterion];
+			}
+			if (incompatibleDecoys[result.criteria[i].verifier].includes(decoy)) {
+				return showError(errorIncompatible);
+			}
+			tmp >>= 8n;
+			let current;
+			{
+				const v = allVerifiers[result.criteria[i].verifier];
+				const d = allVerifiers[decoy];
+				if (result.criteria[i].verifier < decoy) {
+					current = result.criteria[i].verifier;
+					result.doubles[i] = v.concat(d);
+					result.indexes[i] = result.criteria[i].index;
+				} else {
+					current = decoy;
+					result.doubles[i] = d.concat(v);
+					result.indexes[i] = d.length + result.criteria[i].index;
+				}
+			}
+			if (i < length - 1 && current > old) {
+				return showError(errorNotSorted);
+			}
+			old = current;
+		}
+	}
+	return result;
+};
+
+// Extract double criteria from id
+const importDouble = importId => {
+	if (!/^[G-V][\dA-F][A-Za-z\d\-.](?:[\dA-F]{2}[A-Za-z\d\-.]){1,7}$/u.test(importId)) {
+		return null;
+	}
+	let data = BigInt(charDiff(importId, 'G')) << 12n | BigInt(`0x${importId[1]}`) << 8n | fromBase64(importId[2]);
+	for (let i = 3; i < importId.length; i += 3) {
+		data = data << 16n | BigInt(`0x${importId[i]}${importId[i + 1]}`) << 8n | fromBase64(importId[i + 2]);
+	}
+	const length = importId.length / 3;
+	return extractEnigmaFromData(decrypt(data, length, true), length);
+};
+
+// Import an enigma using its id; used in the import tab, when clicking on links, and when the 'e' url parameter is set
+const importEnigma = importId => {
+	let setupEnigma;
+	let doubles;
+	if (importId[0] >= 'G' && importId[0] <= 'V') {
+		const result = importDouble(importId);
+		if (!result) {
+			return false;
+		}
+		setupEnigma = {
+			criteria: result.criteria,
+			indexes: result.indexes,
+		};
+		doubles = result.doubles;
+	} else {
+		setupEnigma = importSingle(importId);
+		if (!setupEnigma) {
+			return false;
+		}
+	}
+	setupEnigma.id = importId;
+	setupEnigma.solution = null;
 	// For each code accepted by the criterion that accepts fewer codes
-	for (const s of importCriteria[importCriteria.reduce((a, c, i) => c.accepted.length < a.value ? {
+	for (const s of setupEnigma.criteria[setupEnigma.criteria.reduce((p, c, i) => c.accepted.length < p.value ? {
 		index: i,
 		value: c.accepted.length,
-	} : a, {
+	} : p, {
 		index: -1,
 		value: 5 * 5 * 5,
 	}).index].accepted) {
-		if (importCriteria.every(c => c.accepts[s])) {
-			if (importSolution) {
-				showError(errorNoUniqueSolution);
-				return;
+		if (setupEnigma.criteria.every(c => c.accepts[s])) {
+			if (setupEnigma.solution !== null) {
+				return showError(errorNoUniqueSolution);
 			}
-			importSolution = s;
+			setupEnigma.solution = s;
 		}
 	}
-	if (!importSolution) {
-		showError(errorNoSolution);
-		return;
+	if (setupEnigma.solution === null) {
+		return showError(errorNoSolution);
 	}
 	// If a criterion does not reject at least a code that every other accept, it is redundand
-	if (!importCriteria.every(c => c.rejected.some(s => importCriteria.every(c2 => c === c2 || c2.accepts[s])))) {
-		showError(errorRedundand);
-		return;
+	{
+		const cs = setupEnigma.criteria;
+		if (!cs.every(c => c.rejected.some(s => cs.every(c2 => c === c2 || c2.accepts[s])))) {
+			return showError(errorRedundand);
+		}
 	}
-	setup(importCriteria, importSolution, importId);
+	setup(setupEnigma, doubles);
+	return true;
+};
+
+// Use one worker per core
+const workers = newArray(navigator.hardwareConcurrency);
+
+// Terminate all workers; may be called either because the generation succeeded or because it was canceled
+const endGeneration = () => {
+	mapInPlace(workers, w => {
+		if (w) {
+			w.terminate();
+		}
+		return null;
+	});
+	hide(document.forms.generate_form.elements.cancel_button);
+	show(document.forms.generate_form.elements.generate_button);
+	hide(o);
+	document.documentElement.classList.remove('progress');
 };
 
 // Import an enigma, then add a new entry to the history of the browser as if a new page was visited
 const importEnigmaAndPush = importId => {
-	importEnigma(importId);
-	history.pushState({
-		enigma: importId,
-	}, '', link.href);
+	endGeneration();
+	if (importEnigma(importId)) {
+		history.pushState({
+			enigma: importId,
+		}, '', link.href);
+	}
 };
 
-// Make clickable non-input elements not retain focus
-for (const focusable of document.querySelectorAll('summary,a,button')) {
-	focusable.onfocus = function() {
-		this.blur();
-	};
-}
+// Set theme-color
+const meta = create('meta');
+meta.name = 'theme-color';
+meta.content = getComputedStyle(document.documentElement).getPropertyValue('--b');
+document.head.append(meta);
+matchMedia('(prefers-color-scheme:dark)').onchange = event => {
+	meta.content = getComputedStyle(document.documentElement).getPropertyValue('--b');
+};
 
-// Set up tabs showing up when headers are expanded
-{
-	const tabs = [...document.getElementsByClassName('tab')];
-	for (let i = 0; i < headers.length; i += 1) {
-		headers[i].ontoggle = event => {
+onClick(
+	document.getElementById('home'),
+	event => {
+		event.preventDefault();
+		endGeneration();
+		hide(play);
+		tabs[0].open = true;
+		history.pushState({}, '', document.location.pathname);
+	},
+);
+
+// Make it possible to flash multiple times
+makeFlashReset(a);
+makeFlashReset(r);
+
+// When a tab is opened, close the others; remove in March 2027 and use name in HTML
+if ('name' in HTMLDetailsElement.prototype) {
+	for (const tab of tabs) {
+		tab.name = 'a';
+	}
+} else {
+	for (let i = 0; i < tabs.length; i += 1) {
+		tabs[i].ontoggle = event => {
 			if (event.newState === 'open') {
-				for (let j = 0; j < headers.length; j += 1) {
+				for (let j = 0; j < tabs.length; j += 1) {
 					if (i !== j) {
-						headers[j].open = false;
+						tabs[j].open = false;
 					}
 				}
-				show(tabs[i]);
-			} else {
-				hide(tabs[i]);
 			}
 		};
 	}
 }
 
-// Set up the example
-{
-	const example = document.getElementById('example');
-	const exampleVerifiers = [
-		3,
-		8,
-		10,
-		13,
-	];
-	for (let i = 0; i < exampleVerifiers.length; i += 1) {
-		append(
-			example,
-			append(
-				create('fieldset'),
-				create('legend', String.fromCodePoint('A'.codePointAt(0) + i)),
-				append(
-					addClasses(create('ol'), 'criteria'),
-					...allVerifiers[exampleVerifiers[i]].map(c => create('li', c.description)),
-				),
-			),
+for (const criteria of document.getElementsByClassName('criteria')) {
+	for (const criterion of criteria.children) {
+		onClick(
+			criterion,
+			function() {
+				const parent = this.parentElement;
+				color(parent.parentElement, toggle(this, parent.children));
+			},
+			function(event) {
+				event.preventDefault();
+				const parent = this.parentElement;
+				color(parent.parentElement, choose(this, parent.children));
+			},
 		);
 	}
 }
 
 // Make links to enigmas work without reloading the page
-for (const enigma of document.getElementsByClassName('enigma')) {
+for (const enigmaLink of document.getElementsByClassName('enigma')) {
 	onClick(
-		enigma,
+		enigmaLink,
 		function(event) {
 			event.preventDefault();
 			importEnigmaAndPush(this.innerText);
@@ -780,56 +1015,117 @@ for (const enigma of document.getElementsByClassName('enigma')) {
 	);
 }
 
-// Make labels for <select>s open the <select> when clicked
-for (const label of document.getElementsByClassName('select')) {
-	onClick(
-		label,
-		function() {
-			this.control.showPicker();
-		},
-	);
+if ('showPicker' in HTMLSelectElement.prototype) {
+	for (const label of document.getElementsByClassName('label_select')) {
+		label.onmousedown = function(event) {
+			if (!this.control.matches(':open')) {
+				event.preventDefault();
+				this.control.showPicker();
+			}
+		};
+	}
+} else {
+	for (const label of document.getElementsByClassName('label_select')) {
+		addClasses(label, 'pass_through');
+	}
 }
 
 {
-	// Generate the ID and call setup
-	const encryptAndSetup = (setupCriteria, setupSolution) => {
-		const max = (1n << BigInt(8 * setupCriteria.length)) - 1n;
-		// Assign a byte to each criterion using its id, then concatenate all of them in a big number
-		let x = setupCriteria.reduce((a, c) => a << 8n | BigInt(c.id), 0n);
-		// Encrypt using swap-or-not
-		for (const key of keys) {
-			x = swapOrNot(x, key, max);
+	const base16 = newArray(16, i => i.toString(16).toUpperCase());
+	const base16m = newArray(16, i => (i + 16).toString(32).toUpperCase());
+	const base64 = newArray(64);
+
+	for (let i = 0; i < 26; i += 1) {
+		base64[i] = charSum('A', i);
+		base64[26 + i] = charSum('a', i);
+	}
+	for (let i = 0; i < 10; i += 1) {
+		base64[52 + i] = charSum('0', i);
+	}
+	base64[62] = '-';
+	base64[63] = '.';
+
+	// Sort the criteria, generate the ID and call setup
+	const afterGenSingle = setupEnigma => {
+		sort(setupEnigma.criteria, c => c.id);
+		setupEnigma.indexes = setupEnigma.criteria.map(c => c.index);
+		{
+			let data = setupEnigma.criteria.reduce((n, c) => n << 8n | BigInt(c.id), 0n);
+			data = encrypt(data, setupEnigma.criteria.length, false);
+			setupEnigma.id = data.toString(16).toUpperCase().padStart(setupEnigma.criteria.length * 2, '0');
 		}
-		// Convert to hexadecimal
-		x = x.toString(16).toUpperCase().padStart(length * 2, '0');
-		setup(setupCriteria, setupSolution, x);
-		// Add an entry in the history of the browser
-		history.pushState({
-			enigma: x,
-		}, '', link.href);
+		setup(setupEnigma);
 	};
 
-	// Use one worker per core
-	const workers = newArray(navigator.hardwareConcurrency);
-
-	// Terminate all workers; may be called because the generation succeeded or because it was canceled
-	const end = () => {
-		mapInPlace(workers, w => {
-			if (w) {
-				w.terminate();
+	// Add decoys, sort the criteria, generate the ID and call setup
+	const afterGenDouble = (setupEnigma, difficult) => {
+		{
+			const {length} = difficult ? allVerifiers : easyVerifiers;
+			mapInPlace(setupEnigma.criteria, criterion => {
+				const incs = incompatibleDecoys[criterion.verifier];
+				let decoy = Math.floor(Math.random() * (length - incs.length));
+				// Skip incompatible decoys
+				for (let i = 0; i < incs.length && decoy >= incs[i]; i += 1) {
+					decoy += 1;
+				}
+				return {
+					criterion,
+					decoy,
+				};
+			});
+		}
+		sort(setupEnigma.criteria, c => Math.min(c.criterion.verifier, c.decoy));
+		setupEnigma.indexes = newArray(setupEnigma.criteria.length);
+		const doubles = newArray(setupEnigma.criteria.length);
+		for (let i = 0; i < setupEnigma.criteria.length; i += 1) {
+			const {criterion, decoy} = setupEnigma.criteria[i];
+			if (criterion.verifier < decoy) {
+				setupEnigma.indexes[i] = criterion.index;
+				doubles[i] = allVerifiers[criterion.verifier].concat(allVerifiers[decoy]);
+			} else {
+				setupEnigma.indexes[i] = allVerifiers[decoy].length + criterion.index;
+				doubles[i] = allVerifiers[decoy].concat(allVerifiers[criterion.verifier]);
 			}
-			return null;
-		});
-		hide(document.forms.generate_form.elements.cancel_button);
-		show(document.forms.generate_form.elements.generate_button);
-		document.documentElement.classList.remove('progress');
+		}
+		let data = 0n;
+		for (const criterion of setupEnigma.criteria) {
+			data = data << 16n | BigInt(criterion.criterion.id << 8 | criterion.decoy);
+		}
+		data = encrypt(data, setupEnigma.criteria.length, true);
+		mapInPlace(setupEnigma.criteria, c => c.criterion);
+		{
+			const idArray = newArray(setupEnigma.criteria.length);
+			for (let i = setupEnigma.criteria.length - 1; i; i -= 1) {
+				const n = Number(data & 0xFFFFn);
+				idArray[i] = `${base16[n >> 12]}${base16[n >> 8 & 0xF]}${base64[n & 0xFF]}`;
+				data >>= 16n;
+			}
+			data = Number(data);
+			idArray[0] = `${base16m[data >> 12]}${base16[data >> 8 & 0xF]}${base64[data & 0xFF]}`;
+			setupEnigma.id = idArray.join('');
+		}
+		setup(setupEnigma, doubles);
+	};
+
+	// Optionally add decoys; then sort the criteria, generate the ID and call setup
+	const afterGen = (setupEnigma, difficult, double) => {
+		if (double) {
+			afterGenDouble(setupEnigma, difficult);
+		} else {
+			afterGenSingle(setupEnigma);
+		}
+		// Add an entry in the history of the browser
+		history.pushState({
+			enigma: setupEnigma.id,
+		}, '', link.href);
 	};
 
 	// Assign a first criterion to a worker; return the next criterion available or -1 on failure
 	const post = (worker, message) => {
 		// Skip criteria that do not have enough accepted codes
 		for (; message.first + message.length - 1 < message.criteria.length; message.first += 1) {
-			if (message.criteria[message.first].accepted.length > message.length - 1) {
+			const first = message.criteria[message.first];
+			if (first.accepted.length > message.length - 1) {
 				worker.postMessage(message);
 				return message.first + 1;
 			}
@@ -838,8 +1134,8 @@ for (const label of document.getElementsByClassName('select')) {
 	};
 
 	// Used to create workers from a string containing the JavaScript code
-	/* global workerString */
-	const url = URL.createObjectURL(new Blob([workerString], {
+	/* global generateString */
+	const url = URL.createObjectURL(new Blob([generateString], {
 		type: 'text/javascript',
 	}));
 
@@ -851,77 +1147,61 @@ for (const label of document.getElementsByClassName('select')) {
 		addClasses(document.documentElement, 'progress');
 		// Switch button
 		hide(this.elements.generate_button);
+		show(o);
+		getSelection().empty();
 		show(this.elements.cancel_button);
+		this.elements.cancel_button.focus();
+		const difficult = this.elements.difficult.checked;
+		const double = this.elements.double.checked;
 		// Shuffle criteria in random order
-		const cs = (this.elements.difficulty.selectedIndex ? allCriteria : easyCriteria).map(item => ({
+		const cs = mapInPlace(sort((difficult ? allCriteria : easyCriteria).map(item => ({
 			item,
 			score: Math.random(),
-		}));
-		mapInPlace(cs.sort((a, b) => a.score - b.score), c => c.item);
+		})), c => c.score), c => c.item);
 		const length = Number(this.elements.size.value);
-		// If length === 1, the generation is done in the main thread, without spawning workers
-		if (length === 1) {
-			const criterion = cs.find(c => c.accepted.length === 1);
-			encryptAndSetup([criterion], criterion.accepted[0]);
-		} else {
-			// The first criterion not yet assigned to a worker
-			let first = 0;
-			// If first === -1, all criteria has been assigned to workers
-			for (let i = 0; i < workers.length && first !== -1; i += 1) {
-				const worker = new Worker(url);
-				worker.onmessage = function(message) {
-					// If a worker sends a non-null message, it has generated an enigma
-					if (message.data) {
-						end();
-						encryptAndSetup(message.data.criteria, message.data.solution);
-					// If a worker sends a null message, no enigma could be found
-					} else if (first !== -1) {
-						// Give the worker another first criterion
-						first = post(this, {
-							criteria: cs,
-							first,
-							length,
-						});
-					}
-				};
-				// Give a first criterion to the worker to make it start
-				first = post(worker, {
-					criteria: cs,
-					first,
-					length,
-				});
-				workers[i] = worker;
-			}
+		// The first criterion not yet assigned to a worker
+		let first = 0;
+		// If first === -1, all criteria has been assigned to workers
+		for (let i = 0; i < workers.length && first !== -1; i += 1) {
+			const worker = new Worker(url);
+			worker.onmessage = function(message) {
+				// If a worker sends a non-null message, it has generated an enigma
+				if (message.data) {
+					endGeneration();
+					afterGen(message.data, difficult, double);
+				// If a worker sends a null message, no enigma could be found
+				} else if (first !== -1) {
+					// Give the worker another first criterion
+					first = post(this, {
+						criteria: cs,
+						first,
+						length,
+					});
+				}
+			};
+			// Give a first criterion to the worker to make it start
+			first = post(worker, {
+				criteria: cs,
+				first,
+				length,
+			});
+			workers[i] = worker;
 		}
 	};
 
 	// Make it possible to cancel the generation
 	onClick(
 		document.forms.generate_form.elements.cancel_button,
-		end,
+		() => {
+			endGeneration();
+			document.forms.generate_form.elements.generate_button.focus();
+		},
 	);
 }
-
-// Make virtual keyboards use capital letters
-if ('autocapitalize' in document.forms.import_form.elements.id) {
-	document.forms.import_form.elements.id.autocapitalize = 'characters';
-}
-
-// Accept only hexadecimal digits as IDs
-document.forms.import_form.elements.id.onbeforeinput = event => {
-	if (event.data && /[^\dA-Fa-f]/u.test(event.data)) {
-		event.preventDefault();
-	}
-};
 
 // Enable import button if and only if ID is valid
 document.forms.import_form.elements.id.oninput = function() {
 	document.forms.import_form.elements.import_button.disabled = !this.validity.valid;
-};
-
-// Auto-capitalize ID
-document.forms.import_form.elements.id.onchange = function() {
-	this.value = this.value.toUpperCase();
 };
 
 // Import button imports the enigma with the ID
@@ -936,31 +1216,18 @@ onClick(
 	() => dialog.close(),
 );
 
-// Remove the class responsible for the animation to make it possible to flash it again
-play.onanimationend = function() {
-	this.classList.remove('flashes');
-};
-
 // Copy button copies the link in the clipboard
 onClick(
-	document.getElementById('copy'),
-	() => {
-		navigator.clipboard.writeText(`${canonical}?e=${link.innerText}`);
-		const animations = copied.getAnimations();
-		if (animations.length) {
-			animations[0].cancel();
-			animations[0].play();
-		} else {
-			addClasses(copied, 'fades');
-			show(copied);
-		}
+	copy,
+	function() {
+		navigator.clipboard.writeText(`${canonical}?enigma=${link.innerText}`);
+		animate(this, 'flashes_green');
 	},
 );
 
-// Hide the element; remove the class responsible for the animation to make it possible to fade it again
-copied.onanimationend = function() {
-	hide(this);
-	this.classList.remove('fades');
+// Remove the class responsible for the animation to make it possible to animate it again
+copy.onanimationend = function() {
+	this.classList.remove('flashes_green');
 };
 
 // If sharing is supported, show the share button
@@ -968,7 +1235,7 @@ if (navigator.canShare) {
 	show(onClick(
 		document.getElementById('share'),
 		() => navigator.share({
-			url: `${canonical}?e=${link.innerText}`,
+			url: `${canonical}?enigma=${link.innerText}`,
 		}),
 	));
 }
@@ -1011,28 +1278,21 @@ document.forms.question_form.onsubmit = function(event) {
 		} else {
 			turns += 1;
 			const td = create('td', writeCode(document.forms.question_form.elements.code.value));
-			makeAnimationReset(td);
 			lastCodeTd = td;
 			tr.append(td);
 		}
 		const td = create('td');
-		if (criteria[this.elements.verifier.selectedIndex].accepts[code]) {
-			addClasses(tr, 'flashes_green');
-			addClasses(lastCodeTd, 'flashes_green');
+		if (enigma.criteria[this.elements.verifier.selectedIndex].accepts[code]) {
+			animate(a, 'flashes');
 			td.innerHTML = '<span class="green">✔</span>';
 		} else {
-			addClasses(tr, 'flashes_red');
-			addClasses(lastCodeTd, 'flashes_red');
+			animate(r, 'flashes');
 			td.innerHTML = '<span class="red">✘</span>';
 		}
 		append(tr, create('td', this.elements.verifier.selectedOptions[0].innerText), td);
 	}
 	append(questionsTBody, tr);
 	show(questionsTable);
-	tr.scrollIntoView({
-		behavior: 'smooth',
-		block: 'end',
-	});
 };
 
 {
@@ -1068,20 +1328,21 @@ document.forms.question_form.onsubmit = function(event) {
 // Check the solution and end the game
 document.forms.verify_form.onsubmit = function(event) {
 	event.preventDefault();
+	gameOver = true;
 	for (const verifier of verifiers.children) {
 		for (const criterion of verifier.children[1].children) {
 			criterion.classList.remove('clickable');
 		}
 	}
 	document.forms.question_form.elements.question_button.disabled = true;
+	for (let i = 0; i < enigma.indexes.length; i += 1) {
+		const correct = verifiers.children[i].children[1].children[enigma.indexes[i]];
+		addClasses(correct, 'correct');
+		// If correct was deleted, -1; if it is guess, 1; if it is neither, 0
+		const c = correct.classList.contains('deleted') ? -1 : correct.classList.contains('guess');
+		color(verifiers.children[i], c);
+	}
 	{
-		for (let i = 0; i < criteria.length; i += 1) {
-			const correct = verifiers.children[i].children[1].children[criteria[i].index];
-			addClasses(correct, 'correct');
-			// If correct was deleted, -1; if it is guess, 1; if it is neither, 0
-			const c = correct.classList.contains('deleted') ? -1 : correct.classList.contains('guess');
-			color(verifiers.children[i], c);
-		}
 		let guess = '';
 		for (let i = 0; i < 3; i += 1) {
 			for (let j = 0; j < solutionTBody.children.length; j += 1) {
@@ -1092,55 +1353,43 @@ document.forms.verify_form.onsubmit = function(event) {
 			}
 		}
 		this.elements.verify_button.disabled = true;
-		if (guess === solution) {
+		if (guess === enigma.solution) {
 			color(solutionTable, 1, true);
 			color(this.elements.result, 1, true);
 			this.elements.result.innerText = `Hai vinto in ${turns} turni e ${questions.length} interrogazioni!`;
 		} else {
 			color(solutionTable, -1, true);
 			color(this.elements.result, -1, true);
-			this.elements.result.innerHTML = `Hai perso! Il codice corretto è ${writeCode(solution)}.`;
+			this.elements.result.innerHTML = `Hai perso! Il codice corretto è ${writeCode(enigma.solution)}.`;
 		}
 	}
-	for (let i = 0; i < solution.length; i += 1) {
-		addClasses(solutionTBody.children[5 - solution[i]].children[i], 'correct');
+	for (let i = 0; i < enigma.solution.length; i += 1) {
+		addClasses(solutionTBody.children[5 - enigma.solution[i]].children[i], 'correct');
 	}
 	show(this.elements.result);
-	this.elements.result.scrollIntoView({
-		behavior: 'smooth',
-		block: 'end',
-	});
+	// Scroll to bottom
+	document.documentElement.scrollIntoView(false);
 };
 
-// Make animations reset so that it is possible to flash again on next game
-makeAnimationReset(solutionTable);
-makeAnimationReset(document.forms.verify_form.elements.result);
-
-// Open the first tab
-headers[0].open = true;
-
-// If called with a valid e param, import its value as an enigma
+// If called with an e param, import its value as an enigma
 {
-	let e = new URLSearchParams(document.location.search).get('e');
-	if (e?.length && e.length <= 16 && !/[^\dA-Fa-f]/u.test(e) && !(e.length % 2)) {
-		importEnigma(e);
+	const e = new URLSearchParams(document.location.search).get('enigma');
+	if (e && importEnigma(e)) {
+		history.replaceState({
+			e,
+		}, '', link.href);
 	} else {
-		e = null;
+		history.replaceState({}, '', document.location.pathname);
 	}
-	history.replaceState({
-		enigma: e,
-	}, '', link.href);
 }
 
 // Navigate history without reloading
 onpopstate = event => {
+	endGeneration();
 	if (event.state.enigma) {
 		importEnigma(event.state.enigma);
 	} else {
 		hide(play);
-		headers[0].open = true;
+		tabs[0].open = true;
 	}
 };
-
-// Remove the spinner
-document.documentElement.classList.remove('wait');

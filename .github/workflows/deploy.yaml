@@ -17,18 +17,17 @@ jobs:
       - uses: actions/setup-node@v6
       - run: |
           scripts/lint.sh
-          for branch in $(curl https://api.github.com/repos/Lampadoforo/Enigma/branches | jq -r 'map(.name)[]'); do
-            mkdir -p "_site/${branch}/"
-            wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
-          done
           scripts/build.sh
-          cp _site/main/index.xhtml _site/
-          if [ ${{ github.ref_name }} = main ]; then
-            sudo apt-get install librsvg2-bin
-            rsvg-convert -o _site/og.png --page-width 1200 --page-height 630 --top 15 --left 300 -w 600 src/favicon.svg
-          else
-            wget -P _site/ https://lampadoforo.github.io/Enigma/og.png
-          fi
+          for branch in $(curl https://api.github.com/repos/Lampadoforo/Enigma/branches | jq -r 'map(.name)[]'); do
+            if [ ${branch} != ${{ github.ref_name }} ]; then
+              mkdir "_site/${branch}/"
+              wget -O "_site/${branch}/index.xhtml" "https://lampadoforo.github.io/Enigma/${branch}/"
+              readonly logo=$(grep -Eo '[A-Za-z0-9\-_]{4}\.png' "_site/${branch}/index.xhtml")
+              wget -P "_site/${branch}/" "https://lampadoforo.github.io/Enigma/${branch}/${logo}"
+            fi
+          done
+          cp _site/main/* _site/
+          sed 's/\/main//' _site/index.xhtml
       - uses: actions/upload-pages-artifact@v4
       - id: deployment
         uses: actions/deploy-pages@v5

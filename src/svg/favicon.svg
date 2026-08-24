@@ -1,0 +1,24 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+	<style>
+		svg {
+			color-scheme: dark light;
+		}
+		text {
+			dominant-baseline: middle;
+			font-family: 'Times New Roman', serif;
+			font-size: 24px;
+			font-style: italic;
+			text-anchor: middle;
+			user-select: none;
+		}
+	</style>
+	<polygon fill="#0ff" points="21.213,30 30,21.213 30,8.787 21.213,0 8.787,0 0,8.787 0,21.213 8.787,30"/>
+	<text x="15" y="15">x</text>
+	<rect height="30" fill="#ff0" width="30" x="30"/>
+	<text x="45" y="15">y</text>
+	<circle cx="15" cy="45" fill="#f0f" r="15"/>
+	<text x="15" y="45">z</text>
+	<svg height="31" preserveAspectRatio="xMaxYMax" viewBox="0 0 1240 1114" y="29">
+		<path d="M216,498q39,0 59,64q40,120 57,120q13,0 27,-20q281,-413 520,-588q101,-74 197,-74q127,0 153,8q11,3 11,25q0,18 -23,45q-643,738 -766,960q-42,76 -194,76q-50,0 -105,-26q-23,-12 -80,-153q-72,-178 -72,-312q0,-49 70,-81q96,-44 144,-44h2z" fill="#080"/>
+	</svg>
+</svg>

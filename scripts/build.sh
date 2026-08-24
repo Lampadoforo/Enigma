@@ -1,26 +1,69 @@
 #!/bin/sh
-set -eu
-npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
-dir=_site/$(git branch --show-current)
+set -Ceu
+
+svgBase64() {
+	base64=$(npx svgo -o - --config config/svgo.mjs "$1" | sed "s/&quot;/'/g" | base64 -w 0)
+	echo "data:image/svg+xml;base64,${base64}"
+}
+
+swc() {
+	npx swc -f "$1" --config-file config/swc.json -q
+}
+
+if [ "$#" -eq 0 ]; then
+	npm i svgo @swc/cli @swc/core vnu-jar > /dev/null
+	sudo apt-get -qq install librsvg2-bin
+fi
+
+branch=$(git branch --show-current)
+dir="_site/${branch}"
 mkdir -p "${dir}/tmp/"
-css=$(sed 's|/\*.*\*/||g' src/style.css | tr -d '\t\n' | sed -f scripts/css.sed)
+
+cmds=
+for file in src/svg/backgrounds/*; do
+	name=${file##*/}
+	base64=$(svgBase64 "${file}")
+	echo "background-image: url('${base64}');" > "${dir}/tmp/${name}"
+	cmds="${cmds}/${name}/{
+		r ${dir}/tmp/${name}
+		d
+	};"
+done
+
+css=$(sed "${cmds}" src/style.css | tr -d '\t\n' | sed 's/\/\*[^\*]*\*\///g;s/ {/{/g;s/: /:/g;s/, /,/g;s/ ?> />/g')
 echo "<style>${css}</style>" > "${dir}/tmp/style.css"
-favicon=
-for c in \  \" \# \< \> \{ \}; do
-	favicon="${favicon}s/${c}/%$(printf %X \'"${c}")/g;"
+cmds=/test.css/d\;
+
+favicon=$(svgBase64 src/svg/favicon.svg)
+echo "<link type=\"image/svg+xml\" href=\"${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
+
+for file in src/svg/images/*; do
+	name=${file##*/}
+	npx svgo -o - --config config/svgo.mjs "${file}" > "${dir}/tmp/${name}"
+	id=$(sed -n 's/.*<img \(id="[^"]*"\( class="[^"]*"\)*\).*src="svg\/images\/'"${name}"'".*/\1/p' src/main.xhtml)
+	if [ -n "${id}" ]; then
+		sed -i "s/<svg/<svg ${id}/" "${dir}/tmp/${name}"
+	fi
 done
-favicon=$(npx svgo src/favicon.svg -o - --multipass | sed "${favicon}")
-echo "<link type=\"image/svg+xml\" href=\"data:image/svg+xml,${favicon}\" rel=\"icon\"/>" > "${dir}/tmp/favicon.svg"
-for file in src/icons/*; do
-	npx svgo "${file}" -o - --multipass > "${dir}/tmp/${file##*/}"
+
+rsvg-convert -o "${dir}/logo.png" -w 1200 src/svg/logo.svg
+name=$(b3sum -l 3 --raw "${dir}/logo.png" | basenc --base64url).png
+mv "${dir}/logo.png" "${dir}/${name}"
+cmds="${cmds}s/logo.png/${branch}\/${name}/;"
+
+workers=
+for file in src/workers/*; do
+	worker="${file##*/}"
+	cmds="${cmds}/${worker}/d;"
+	worker="const ${worker%.*}String=\"'use strict';$(sed -n '/functions/q;p' "${file}" | swc "${file}")\";"
+	workers="${workers}${worker}"
 done
-worker=$(sed -n '/functions/q;p' src/worker.js | npx swc -f src/worker.js --config-file config/swc.json -q)
 js=$({
-	echo "const workerString=\"'use strict';${worker}\";"
+	echo "${workers}"
 	cat src/main.js
-} | npx swc -f src/main.js --config-file config/swc.json -q)
+} | swc src/main.js)
 echo "<script>//<![CDATA['use strict';{${js}}//]]></script>" > "${dir}/tmp/main.js"
-cmds=/worker.js/d\;
+
 for file in "${dir}"/tmp/*; do
 	cmds="${cmds}/${file##*/}/{
 		r ${file}
@@ -28,5 +71,7 @@ for file in "${dir}"/tmp/*; do
 	};"
 done
 sed "${cmds}" src/main.xhtml | tr -d '\t\n' | sed 's/<!\[CDATA\[/&\n/' > "${dir}/index.xhtml"
+
 rm -r "${dir}/tmp"
+
 npx vnu-jar --Werror "${dir}/index.xhtml"

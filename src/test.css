@@ -1,0 +1,13 @@
+button:disabled {
+	opacity: .5;
+}
+button:enabled:hover > img {
+	filter: invert();
+}
+img {
+	display: block;
+}
+button > img {
+	height: 1lh;
+	width: 1lh;
+}

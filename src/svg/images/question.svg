@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2">
+	<style>
+		svg {
+			color-scheme: dark light;
+		}
+	</style>
+	<mask id="q">
+		<rect fill="#fff" height="100%" width="100%"/>
+		<text dominant-baseline="central" font-family="'Times New Roman',serif" font-size="2px" text-anchor="middle" x="1" y="1">?</text>
+	</mask>
+	<circle cx="1" cy="1" fill="currentColor" mask="url(#q)" r="1"/>
+</svg>
